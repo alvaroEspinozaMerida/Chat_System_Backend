@@ -1,4 +1,5 @@
-package com.espinozameridaal.ChatServer;
+package com.espinozameridaal;
+
 
 import java.io.*;
 import java.net.Socket;
@@ -25,9 +26,6 @@ public class Client {
     }
     public void sendMessage() {
         try {
-//            writer.write(userName);
-//            writer.newLine();
-//            writer.flush();
 
             Scanner scanner = new Scanner(System.in);
             while (socket.isConnected()) {
@@ -37,7 +35,7 @@ public class Client {
                 writer.flush();
             }
         } catch (IOException e) {
-           closeClient(socket, reader, writer);
+            closeClient(socket, reader, writer);
         }
     }
     public void listenForMessage(){
@@ -77,11 +75,17 @@ public class Client {
 
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
+        System.out.println("Please enter the server port you wish to listen on:  ");
+        int port = Integer.parseInt(scanner.nextLine());
+
+
         System.out.println("Enter your username: ");
         String userName = scanner.nextLine();
 
-        Socket socket = new Socket("localhost", 1234);
+        Socket socket = new Socket("localhost", port);
         Client client = new Client(socket, userName);
+
+
         client.listenForMessage();
         client.sendMessage();
 

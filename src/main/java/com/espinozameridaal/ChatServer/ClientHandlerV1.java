@@ -5,14 +5,14 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 
-public class ClientHandler  implements Runnable {
-     public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+public class ClientHandlerV1 implements Runnable {
+     public static ArrayList<ClientHandlerV1> clientHandlers = new ArrayList<>();
      private Socket socket;
      private BufferedReader reader;
      private BufferedWriter writer;
      private String clientUsername;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandlerV1(Socket socket) {
         try{
             this.socket = socket;
             this.writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
@@ -61,7 +61,7 @@ public class ClientHandler  implements Runnable {
     }
 
     private void broadcastMessage(String message) {
-        for(ClientHandler clientHandler : clientHandlers){
+        for(ClientHandlerV1 clientHandler : clientHandlers){
             try{
                 if(!clientHandler.clientUsername.equals(this.clientUsername)){
                     clientHandler.writer.write(message);
@@ -74,7 +74,7 @@ public class ClientHandler  implements Runnable {
         }
     }
 
-    public void removeClientHandler(ClientHandler clientHandler){
+    public void removeClientHandler(ClientHandlerV1 clientHandler){
         clientHandlers.remove(clientHandler);
         broadcastMessage("ChatServer.Server: "+clientHandler.clientUsername+" has left the chat !");
     }

@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class Server {
+public class ServerV1 {
     private ServerSocket serverSocket;
 
-    public Server(ServerSocket serverSocket) {
+    public ServerV1(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
     }
 
@@ -19,7 +19,7 @@ public class Server {
                 Socket socket = serverSocket.accept();
                 System.out.println(socket.getInetAddress().getHostAddress() + " has connected!");
 //                location of where when new client gets created and gets linked to clienthandler
-                ClientHandler clientHandler = new ClientHandler(socket);
+                ClientHandlerV1 clientHandler = new ClientHandlerV1(socket);
 
                 Thread thread = new Thread(clientHandler);
                 thread.start();
@@ -45,7 +45,7 @@ public class Server {
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(1234);
-        Server server = new Server(serverSocket);
+        ServerV1 server = new ServerV1(serverSocket);
         server.start();
     }
 
