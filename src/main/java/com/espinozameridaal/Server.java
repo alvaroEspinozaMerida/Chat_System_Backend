@@ -33,12 +33,18 @@ public class Server {
                 while (true) {
 
                     Socket clientSocket =  this.serverSocket.accept();
+                    //                        TODO: Use this to share information to user
+                    var clientIP = clientSocket.getInetAddress().getHostAddress();
+                    var clientPort = clientSocket.getPort();
+                    System.out.println("Accepted connection from " + clientSocket.getInetAddress().getHostName() + ":" + clientIP);
+
+
+
                     executor.submit(() -> {
-//                        TODO: Use this to share information to user
-                        var clientIP = clientSocket.getInetAddress().getHostAddress();
-                        var clientPort = clientSocket.getPort();
-                        System.out.println("Accepted connection from " + clientSocket.getInetAddress().getHostName());
+
                         ClientHandler clientHandler = new ClientHandler(clientSocket);
+                        clientHandler.run();
+
                     });
                 }
             }catch (IOException ioe) {
@@ -61,7 +67,7 @@ public class Server {
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(1234);
-        ServerV1 server = new ServerV1(serverSocket);
+        Server server = new Server(serverSocket);
         server.start();
     }
 
