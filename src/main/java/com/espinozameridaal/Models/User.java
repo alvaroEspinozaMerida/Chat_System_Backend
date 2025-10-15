@@ -43,6 +43,6 @@ public class User {
                 return u;
             }
         }
-        return null; // not found
+        return null;
     }
 }

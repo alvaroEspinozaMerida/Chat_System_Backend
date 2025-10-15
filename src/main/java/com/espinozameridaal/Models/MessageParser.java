@@ -4,10 +4,7 @@ import java.util.regex.*;
 
 public class MessageParser {
 
-    // Example input: "ID <1>: Alice: Hello world"
     public static ParsedMessage parse(String rawMessage) {
-        // Regex groups:
-        // 1 -> ID number, 2 -> username, 3 -> message
         Pattern pattern = Pattern.compile("^ID <(\\d+)> ?: ?([^:]+): ?(.+)$");
         Matcher matcher = pattern.matcher(rawMessage);
 

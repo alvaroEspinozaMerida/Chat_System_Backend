@@ -34,7 +34,6 @@ public class ClientHandler  implements Runnable {
             this.clientUsername = parts.length >= 3 ? parts[2] : ("user-" + clientUserId);
 
             clientHandlers.add(this);
-            // Optional: send a welcome
             writer.write("Welcome " + clientUsername + " (id " + clientUserId + ")");
             writer.newLine();
             writer.flush();
