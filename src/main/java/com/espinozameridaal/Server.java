@@ -1,5 +1,7 @@
 package com.espinozameridaal;
 
+import com.espinozameridaal.Database.Database;
+import java.sql.SQLException;
 import com.espinozameridaal.ChatServer.ServerV1;
 
 import java.io.IOException;
@@ -65,10 +67,17 @@ public class Server {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        ServerSocket serverSocket = new ServerSocket(1234);
-        Server server = new Server(serverSocket);
-        server.start();
+    public static void main(String[] args) {
+        try {
+            // init H2 and create tables
+            Database.init();
+    
+            ServerSocket serverSocket = new ServerSocket(1234);
+            Server server = new Server(serverSocket);
+            server.start();
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
 

@@ -34,5 +34,9 @@ build/
 ### VS Code ###
 .vscode/
 
+### Chat.db ### // So it creates your own when running
+chat.db
+*.db
+
 ### Mac OS ###
 .DS_Store

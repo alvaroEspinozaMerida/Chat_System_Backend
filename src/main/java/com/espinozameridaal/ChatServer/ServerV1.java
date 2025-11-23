@@ -3,6 +3,9 @@ package com.espinozameridaal.ChatServer;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
+
+import com.espinozameridaal.Database.Database;
 
 public class ServerV1 {
     private ServerSocket serverSocket;
@@ -43,10 +46,18 @@ public class ServerV1 {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        ServerSocket serverSocket = new ServerSocket(1234);
-        ServerV1 server = new ServerV1(serverSocket);
-        server.start();
+    public static void main(String[] args) {
+        try {
+            // create DB file/tables
+            Database.init();
+
+            // start the chat server
+            ServerSocket serverSocket = new ServerSocket(1234);
+            ServerV1 server = new ServerV1(serverSocket);
+            server.start();
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
