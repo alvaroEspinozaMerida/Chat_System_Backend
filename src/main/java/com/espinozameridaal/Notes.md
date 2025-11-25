@@ -156,15 +156,23 @@ other virtual threads.
 ## Database support (SQLite)
 
 ### Overview
+
 - The chat system now uses a simple SQLite database stored in a file named `chat.db` in the project root.
 - `Database.java` manages the JDBC connection using `jdbc:sqlite:chat.db`.
-- `UserDao.java` is responsible for creating and querying `users`, `friendships`, and `friend_requests` tables.
+- `UserDao.java` manages users, friendships, and lookups.
 - `Client.java` uses `UserDao` to load the current user and their friends from the database.
+- `FriendRequestDao.java` — handles sending, accepting, rejecting, and querying friend requests.
+- `MessageDao.java` — stores and loads private message history between users.
 
 ### Tables created
 - `users`: stores user id, username, optional password, and created time.
 - `friendships`: stores pairs of user ids that are friends.
 - `friend_requests`: stores pending friend request information.
+- `messages` — stores message history with:
+  - sender id  
+  - receiver id  
+  - message text  
+  - timestamp  
 
 These tables are created automatically the first time the server runs, by calling `Database.init()` in `Server.javs`.
 
@@ -184,8 +192,14 @@ These tables are created automatically the first time the server runs, by callin
    - When asked, enter a username.
    - If the username already exists in `users`, it is loaded; otherwise, a new row is created.
    - The client menu still supports:
-     - `Show friends` (reads from the `friendships` table)
-     - `Add friend` (only allows adding usernames that already exist in the `users` table)
+     - Register a new user if the username does not exist.
+     - Load existing user data from the database.
+     - Allow:
+       - Viewing friends
+       - Sending friend requests
+       - Accepting friend requests
+       - Messaging friends
+       - Viewing stored message history (Using `MessageDao`)
 
 ### How to inspect the database
 - The database file is `chat.db` in the project folder.
@@ -197,4 +211,5 @@ These tables are created automatically the first time the server runs, by callin
   SELECT * FROM users;
   SELECT * FROM friendships;
   SELECT * FROM friend_requests;
+  SELECT * FROM messages;
   ```
