@@ -26,7 +26,7 @@ public class Database {
                       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                       last_login_at TEXT,
                       email TEXT,
-                      status TEXT DEFAULT 'active',
+                      status TEXT DEFAULT 'active'
                     )
                 """); /// Added last_login, email, and status
 

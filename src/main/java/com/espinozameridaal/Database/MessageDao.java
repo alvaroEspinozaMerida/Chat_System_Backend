@@ -7,7 +7,7 @@ import java.util.List;
 
 public class MessageDao {
 
-    // Save a messages into the database
+    // Save a message into the database
     public void saveMessage(long senderId, long receiverId, String content) throws SQLException {
         String sql = """
             INSERT INTO messages (sender_id, receiver_id, content)
@@ -27,10 +27,11 @@ public class MessageDao {
     // Loas all direct messages between two users
     public List<Message> getConversation(long userA, long userB) throws SQLException {
         String sql = """
-            SELECT * FROM messages
+            SELECT id, sender_id, receiver_id, content, sent_at
+            FROM messages
             WHERE (sender_id = ? AND receiver_id = ?)
                OR (sender_id = ? AND receiver_id = ?)
-            ORDER BY created_at ASC
+            ORDER BY sent_at ASC
         """;
 
         List<Message> list = new ArrayList<>();
@@ -50,20 +51,20 @@ public class MessageDao {
                         rs.getLong("sender_id"),
                         rs.getLong("receiver_id"),
                         rs.getString("content"),
-                        rs.getString("created_at")
+                        rs.getString("sent_at") // already timestamped by DB
                 ));
             }
         }
-
         return list;
     }
 
     // Load message history for a single user
     public List<Message> getMessagesForUser(long userId) throws SQLException {
         String sql = """
-            SELECT * FROM messages
+            SELECT id, sender_id, receiver_id, content, sent_at
+            FROM messages
             WHERE sender_id = ? OR receiver_id = ?
-            ORDER BY created_at DESC
+            ORDER BY sent_at DESC
         """;
 
         List<Message> list = new ArrayList<>();
@@ -81,11 +82,10 @@ public class MessageDao {
                         rs.getLong("sender_id"),
                         rs.getLong("receiver_id"),
                         rs.getString("content"),
-                        rs.getString("created_at")
+                        rs.getString("sent_at")
                 ));
             }
         }
-
         return list;
     }
 }

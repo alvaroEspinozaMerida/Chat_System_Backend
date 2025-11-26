@@ -11,6 +11,12 @@ import com.espinozameridaal.Models.User;
 
 import com.espinozameridaal.Database.UserDao;
 
+import com.espinozameridaal.Models.FriendRequest;
+import com.espinozameridaal.Models.Message;
+
+import com.espinozameridaal.Database.FriendRequestDao;
+import com.espinozameridaal.Database.MessageDao;
+
 public class Client {
 
     private Socket socket;
@@ -18,6 +24,8 @@ public class Client {
     private BufferedWriter writer;
     private User user;
     private UserDao userDao;
+    private FriendRequestDao friendRequestDao;
+    private MessageDao messageDao;
 
 
     public Client(Socket socket, User user, UserDao userDao) {
@@ -27,6 +35,8 @@ public class Client {
             this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.user = user;
             this.userDao = userDao;
+            this.friendRequestDao = new FriendRequestDao();
+            this.messageDao = new MessageDao();
 
             writer.write("HELLO " + user.userID + " " + user.userName);
             writer.newLine();
@@ -57,9 +67,11 @@ public class Client {
 
     public void displayMenu(){
         System.out.println("Menu");
-        System.out.println("1. Show friends");
-        System.out.println("2. Add Friend");
-        System.out.println("3. Message Friend:");
+        System.out.println("1. Show Friends");
+        System.out.println("2. Friend Requests");
+        System.out.println("3. Add Friend");
+        System.out.println("4. Message Friend");
+        System.out.println("5. Settings");
         System.out.println("0. Exit");
     }
 
@@ -76,7 +88,7 @@ public class Client {
                 System.out.print("Enter choice: ");
                 String choiceLine = scanner.nextLine().trim();
                 if (choiceLine.isBlank()) {
-                    System.out.println("Invalid choice! Please enter a number between 0 and 3.");
+                    System.out.println("Invalid choice! Please enter a number between 0 and 5.");
                     continue;
                 }
 
@@ -84,24 +96,132 @@ public class Client {
                 try {
                     choice = Integer.parseInt(choiceLine);
                 } catch (NumberFormatException e) {
-                    System.out.println("Invalid choice! Please enter a number between 0 and 3.");
+                    System.out.println("Invalid choice! Please enter a number between 0 and 5.");
                     continue;
                 }
 
-                if (choice < 0 || choice > 3) {
-                    System.out.println("Invalid choice! Please enter a number between 0 and 3.");
+                if (choice < 0 || choice > 5) {
+                    System.out.println("Invalid choice! Please enter a number between 0 and 5.");
                     continue;
                 }
 
-                switch (choice){
-                    case 1:
+                switch (choice) {
+                    case 1 -> {
+                        try {
+                            user.friends = new ArrayList<>(userDao.getFriends(user.userID));
+                        } catch (SQLException e) {
+                            System.out.println("Error loading friends.");
+                            e.printStackTrace();
+                            break;
+                        }
+
                         System.out.println("--------------------------------");
-                        this.user.showFriends();
-                        break;
-                    case 2:
+                        System.out.println(user.userName + "'s friends:");
+                        if (user.friends.isEmpty()) {
+                            System.out.println("(no friends yet)");
+                        } else {
+                            for (User f : user.friends) {
+                                System.out.println(" - " + f.userName + " (id " + f.userID + ")");
+                            }
+                        }
+                        System.out.println("--------------------------------");
+                    }
+
+                    case 2 -> {
+                        // Friend Requests: view and accept/decline
+                        System.out.println("Friend Requests");
+                        System.out.println("Pending friend requests:");
+                        java.util.List<FriendRequest> pending;
+                        try {
+                            pending = friendRequestDao.getIncomingPending(user.userID);
+                        } catch (SQLException e) {
+                            System.out.println("Error loading friend requests.");
+                            e.printStackTrace();
+                            break;
+                        }
+
+                        if (pending.isEmpty()) {
+                            System.out.println("No pending friend requests.");
+                            break;
+                        }
+
+                        for (FriendRequest fr : pending) {
+                            System.out.println("From userId=" + fr.getSenderId() + " (requestId=" + fr.getId() + ")");
+                        }
+
+                        System.out.println("Enter 'a <senderUserId>' to accept, 'd <senderUserId>' to decline, or 'b' to go back:");
+                        String cmd = scanner.nextLine().trim();
+                        if (cmd.equalsIgnoreCase("b")) {
+                            break;
+                        }
+
+                        if (cmd.startsWith("a ")) {
+                            String idPart = cmd.substring(2).trim();
+                            try {
+                                long senderUserId = Long.parseLong(idPart);
+
+                                FriendRequest target = null;
+                                for (FriendRequest fr : pending) {
+                                    if (fr.getSenderId() == senderUserId) {
+                                        target = fr;
+                                        break;
+                                    }
+                                }
+
+                                if (target == null) {
+                                    System.out.println("Request not found.");
+                                    break;
+                                }
+
+                                long reqId = target.getId();
+
+                                if (friendRequestDao.accept(reqId)) {
+    
+                                    userDao.addFriendship(user.userID, target.getSenderId());
+                                    user.friends = new ArrayList<>(userDao.getFriends(user.userID));
+                                    System.out.println("Friend request accepted.");
+                                } else {
+                                    System.out.println("Could not accept request.");
+                                }
+                            } catch (Exception e) {
+                                System.out.println("Invalid sender user id or DB error.");
+                            }
+                        } else if (cmd.startsWith("d ")) {
+                            String idPart = cmd.substring(2).trim();
+                            try {
+                                long senderUserId = Long.parseLong(idPart);
+                                FriendRequest target = null;
+
+                                for (FriendRequest fr : pending) {
+                                    if (fr.getSenderId() == senderUserId) {
+                                        target = fr;
+                                        break;
+                                    }
+                                }
+
+                                if (target == null) {
+                                    System.out.println("Request not found.");
+                                    break;
+                                }
+
+                                long reqId = target.getId();
+
+                                if (friendRequestDao.decline(reqId)) {
+                                    System.out.println("Friend request declined.");
+                                } else {
+                                    System.out.println("Could not decline request.");
+                                }
+                            } catch (Exception e) {
+                                System.out.println("Invalid sender user id or DB error.");
+                            }
+                        } else {
+                            System.out.println("Unknown command.");
+                        }
+                    }
+
+                    case 3 -> {
+                        // Add Friend (sends friend request)
                         System.out.println("Add Friend");
-                        // clears newline from last nextInt
-                        // scanner.nextLine(); 
                         System.out.print("Enter friend's username: ");
                         String friendName = scanner.nextLine().trim();
                         if (friendName.isBlank()) {
@@ -113,35 +233,29 @@ public class Client {
                             break;
                         }
                         try {
-                            // check if friend exists in DB
                             User friend = userDao.findByUsername(friendName);
                             if (friend == null) {
-                                System.out.println("User does not exist. Cannot add friend.");
+                                System.out.println("User does not exist. Cannot send request.");
                                 break;
                             }
 
-                            if (friend.userID == user.userID) {
-                                System.out.println("You cannot add yourself.");
-                                break;
+                            boolean ok = friendRequestDao.createRequest(user.userID, friend.userID);
+                            if (ok) {
+                                System.out.println("Friend request sent to " + friend.userName + ".");
+                            } else {
+                                System.out.println("A pending request already exists or cannot send request.");
                             }
-
-                            // create friendship in DB
-                            userDao.addFriendship(user.userID, friend.userID);
-
-                            // refresh memory friends list
-                            user.friends = new ArrayList<>(userDao.getFriends(user.userID));
-                            System.out.println("Added friend: " + friend.userName);
                         } catch (SQLException e) {
-                            System.out.println("Failed to add friend.");
+                            System.out.println("Failed to send friend request.");
                             e.printStackTrace();
                         }
-                        break;
-                    case 3:
-//                        System.out.println("Message Friend:");
-                        System.out.println("Which friend do you want to message ? ");
+                    }
+
+                    case 4 -> {
+                        // Message Friend (show history + chat)
+                        System.out.println("Which friend do you want to message?");
                         System.out.println("Enter their ID (enter -1 to go back): ");
                         String idLine = scanner.nextLine().trim();
-
                         int userID;
                         try {
                             userID = Integer.parseInt(idLine);
@@ -149,37 +263,59 @@ public class Client {
                             System.out.println("Invalid ID. Returning to menu.");
                             break;
                         }
-
                         if (userID == -1) {
                             System.out.println("Returning to menu.");
                             break;
                         }
-
                         User found = User.getUserById(userID, this.user.friends);
-                        if (found != null) {
-                            System.out.println("Found user: " + found.userName);
-                        } else {
-                            System.out.println("User not found.");
+                        if (found == null) {
+                            System.out.println("User not found in your friends list.");
+                            break;
                         }
-                        String message = "" ;
-                        while (found != null && !Objects.equals(message, "-1")) {
-                            System.out.println("Sending messages to (" + found.userName + "): " );
-                            message = scanner.nextLine();
 
-                            if (message.isBlank()) continue;  // skip empties
+                        // Show message history
+                        try {
+                            java.util.List<Message> history = messageDao.getConversation(user.userID, found.userID);
+                            System.out.println("----- Conversation with " + found.userName + " -----");
+                            if (history.isEmpty()) {
+                                System.out.println("No previous messages.");
+                            } else {
+                                for (Message m : history) {
+                                    String who = (m.senderId == user.userID) ? "You" : found.userName;
+                                    System.out.println("[" + m.createdAt + "] " + who + ": " + m.content);
+                                }
+                            }
+                            System.out.println("--------------------------------------");
+                        } catch (SQLException e) {
+                            System.out.println("Could not load message history.");
+                            e.printStackTrace();
+                        }
+
+                        String message = "";
+                        while (!Objects.equals(message, "-1")) {
+                            System.out.println("Sending messages to (" + found.userName + "): ");
+                            message = scanner.nextLine();
+                            if (message.isBlank()) continue;
                             if (Objects.equals(message, "-1")) break;
 
-                            System.out.println("SENDING TEXT:"+ message);
-//                            this should contain the ID and user of the person you are messaging
-                            writer.write("ID <"+found.userID+"> :"+ found.userName+ ": " + message);
+                            writer.write("ID <" + found.userID + "> :" + found.userName + ": " + message);
                             writer.newLine();
                             writer.flush();
                         }
-                        break;
-                    case 0:
+                    }
+
+                    case 5 -> {
+                        // Settings (optional)
+                        System.out.println("Settings");
+                        System.out.println("(-- Future Features --)");
+                    }
+
+                    case 0 -> {
                         System.out.println("Exit");
                         System.exit(0);
-                        break;
+                    }
+
+                    default -> System.out.println("Invalid choice.");
                 }
 
             }
@@ -197,8 +333,8 @@ public class Client {
             try {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    System.out.println("NEW MESSAGE:");
-                    System.out.println(line);
+                    // System.out.println("NEW MESSAGE:");
+                    // System.out.println(line);
                 }
             } catch (IOException e) {
                 // log if you want
@@ -310,5 +446,5 @@ public class Client {
             e.printStackTrace();
         }
     }
-
+    
 }

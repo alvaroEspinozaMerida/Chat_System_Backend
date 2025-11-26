@@ -1,10 +1,13 @@
 package com.espinozameridaal.Database;
 
-import com.espinozameridaal.Models.FriendRequest;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.espinozameridaal.Models.FriendRequest;
 
 public class FriendRequestDao {
 
@@ -78,18 +81,19 @@ public class FriendRequestDao {
 
     // Accept request
     public boolean accept(long requestId) throws SQLException {
-        String sql = """
-            UPDATE friend_requests
-            SET status = 'accepted', responded_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        """;
+      String sql = """
+          UPDATE friend_requests
+          SET status = 'accepted',
+              responded_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+      """;
 
-        try (Connection conn = Database.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+      try (Connection conn = Database.getConnection();
+          PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setLong(1, requestId);
-            return ps.executeUpdate() > 0;
-        }
+          ps.setLong(1, requestId);
+          return ps.executeUpdate() > 0;
+      }
     }
 
     // Decline request
