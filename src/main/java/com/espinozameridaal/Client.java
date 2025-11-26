@@ -1,19 +1,22 @@
 package com.espinozameridaal;
 
-
 import java.io.*;
 import java.net.Socket;
+import java.net.DatagramSocket;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Scanner;
+import java.nio.ByteBuffer;
+
+import javax.sound.sampled.*;
+
 import com.espinozameridaal.Models.User;
-
 import com.espinozameridaal.Database.UserDao;
-
 import com.espinozameridaal.Models.FriendRequest;
 import com.espinozameridaal.Models.Message;
-
 import com.espinozameridaal.Database.FriendRequestDao;
 import com.espinozameridaal.Database.MessageDao;
 
@@ -27,6 +30,14 @@ public class Client {
     private FriendRequestDao friendRequestDao;
     private MessageDao messageDao;
 
+    // === Voice chat fields ===
+    private static final int VOICE_UDP_PORT = 50005;     // server's UDP voice port
+    private static final int AUDIO_BUFFER_SIZE = 1024;   // bytes per audio packet
+
+    private volatile boolean voiceThreadsRunning = false;
+    private DatagramSocket voiceSocket;
+    private Thread voiceCaptureThread;
+    private Thread voiceReceiveThread;
 
     public Client(Socket socket, User user, UserDao userDao) {
         try {
@@ -49,14 +60,169 @@ public class Client {
         }
     }
 
+    // === Voice chat helpers ===
+
+    private static AudioFormat getAudioFormat() {
+        float sampleRate = 16000.0f;
+        int sampleSizeInBits = 16;
+        int channels = 1;
+        boolean signed = true;
+        boolean bigEndian = false;
+        return new AudioFormat(sampleRate, sampleSizeInBits, channels, signed, bigEndian);
+    }
+
+    private void startVoiceCall(User friend) {
+        if (voiceThreadsRunning) {
+            System.out.println("A voice call is already running. Stop it first.");
+            return;
+        }
+
+        // Notify server that we want to start voice with this friend
+        try {
+            writer.write("VOICE_START " + friend.userID);
+            writer.newLine();
+            writer.flush();
+        } catch (IOException e) {
+            System.out.println("Could not notify server about voice call start: " + e.getMessage());
+            return;
+        }
+
+        System.out.println("Starting voice call with " + friend.userName +
+                ". Have them also start a voice call with you.");
+
+        voiceThreadsRunning = true;
+
+        try {
+            voiceSocket = new DatagramSocket();
+            InetAddress serverAddr = socket.getInetAddress(); // same host as TCP server
+
+            AudioFormat format = getAudioFormat();
+
+            DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class, format);
+            DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class, format);
+
+            if (!AudioSystem.isLineSupported(micInfo)) {
+                System.out.println("Microphone line not supported on this system.");
+                voiceThreadsRunning = false;
+                return;
+            }
+            if (!AudioSystem.isLineSupported(speakerInfo)) {
+                System.out.println("Speaker line not supported on this system.");
+                voiceThreadsRunning = false;
+                return;
+            }
+
+            TargetDataLine microphone = (TargetDataLine) AudioSystem.getLine(micInfo);
+            microphone.open(format);
+            microphone.start();
+
+            SourceDataLine speakers = (SourceDataLine) AudioSystem.getLine(speakerInfo);
+            speakers.open(format);
+            speakers.start();
+
+            // Capture + send thread
+            voiceCaptureThread = new Thread(() -> {
+                byte[] buffer = new byte[AUDIO_BUFFER_SIZE];
+                try {
+                    while (voiceThreadsRunning && !Thread.currentThread().isInterrupted()) {
+                        int bytesRead = microphone.read(buffer, 0, buffer.length);
+                        if (bytesRead > 0) {
+                            ByteBuffer bb = ByteBuffer.allocate(8 + bytesRead);
+                            bb.putLong(user.userID);           // prepend our user id
+                            bb.put(buffer, 0, bytesRead);      // audio data
+
+                            byte[] sendData = bb.array();
+                            DatagramPacket packet = new DatagramPacket(
+                                    sendData,
+                                    sendData.length,
+                                    serverAddr,
+                                    VOICE_UDP_PORT
+                            );
+                            voiceSocket.send(packet);
+                        }
+                    }
+                } catch (IOException e) {
+                    if (voiceThreadsRunning) {
+                        System.out.println("Voice capture error: " + e.getMessage());
+                    }
+                } finally {
+                    microphone.stop();
+                    microphone.close();
+                }
+            }, "VoiceCaptureThread");
+
+            // Receive + play thread
+            voiceReceiveThread = new Thread(() -> {
+                byte[] recvBuf = new byte[AUDIO_BUFFER_SIZE];
+                try {
+                    while (voiceThreadsRunning && !Thread.currentThread().isInterrupted()) {
+                        DatagramPacket packet = new DatagramPacket(recvBuf, recvBuf.length);
+                        voiceSocket.receive(packet);
+                        // Server sends raw audio bytes (no userId header)
+                        speakers.write(packet.getData(), 0, packet.getLength());
+                    }
+                } catch (IOException e) {
+                    if (voiceThreadsRunning) {
+                        System.out.println("Voice receive error: " + e.getMessage());
+                    }
+                } finally {
+                    speakers.drain();
+                    speakers.stop();
+                    speakers.close();
+                }
+            }, "VoiceReceiveThread");
+
+            voiceCaptureThread.start();
+            voiceReceiveThread.start();
+
+        } catch (LineUnavailableException | IOException e) {
+            System.out.println("Could not start voice call: " + e.getMessage());
+            voiceThreadsRunning = false;
+            if (voiceSocket != null && !voiceSocket.isClosed()) {
+                voiceSocket.close();
+            }
+        }
+    }
+
+    private void stopVoiceCall() {
+        if (!voiceThreadsRunning) {
+            return;
+        }
+
+        // tell server we are stopping
+        try {
+            writer.write("VOICE_STOP");
+            writer.newLine();
+            writer.flush();
+        } catch (IOException e) {
+            System.out.println("Error notifying server to stop voice: " + e.getMessage());
+        }
+
+        System.out.println("Stopping voice call...");
+
+        voiceThreadsRunning = false;
+
+        if (voiceCaptureThread != null) {
+            voiceCaptureThread.interrupt();
+        }
+        if (voiceReceiveThread != null) {
+            voiceReceiveThread.interrupt();
+        }
+
+        if (voiceSocket != null && !voiceSocket.isClosed()) {
+            voiceSocket.close();
+        }
+    }
+
+    // === Existing stuff ===
+
     public void sendMessage() {
         try {
-
             Scanner scanner = new Scanner(System.in);
             while (socket.isConnected()) {
                 System.out.println(">");
                 String message = scanner.nextLine();
-                writer.write(this.user.userName +": "+ message);
+                writer.write(this.user.userName + ": " + message);
                 writer.newLine();
                 writer.flush();
             }
@@ -65,30 +231,30 @@ public class Client {
         }
     }
 
-    public void displayMenu(){
+    public void displayMenu() {
         System.out.println("Menu");
         System.out.println("1. Show Friends");
         System.out.println("2. Friend Requests");
         System.out.println("3. Add Friend");
         System.out.println("4. Message Friend");
         System.out.println("5. Settings");
+        System.out.println("6. Start Voice Call");
+        System.out.println("7. Stop Voice Call");
         System.out.println("0. Exit");
     }
 
-//    RUNs off main thread; builds off the send message function
-    public void mainMenu(){
+    // RUNs off main thread; builds off the send message function
+    public void mainMenu() {
 
         try {
             Scanner scanner = new Scanner(System.in);
             System.out.println("CONNECTION ESTABLISHED");
             while (socket.isConnected()) {
-//                assumption is that you successfully logged in etc
-
                 displayMenu();
                 System.out.print("Enter choice: ");
                 String choiceLine = scanner.nextLine().trim();
                 if (choiceLine.isBlank()) {
-                    System.out.println("Invalid choice! Please enter a number between 0 and 5.");
+                    System.out.println("Invalid choice! Please enter a number between 0 and 7.");
                     continue;
                 }
 
@@ -96,12 +262,12 @@ public class Client {
                 try {
                     choice = Integer.parseInt(choiceLine);
                 } catch (NumberFormatException e) {
-                    System.out.println("Invalid choice! Please enter a number between 0 and 5.");
+                    System.out.println("Invalid choice! Please enter a number between 0 and 7.");
                     continue;
                 }
 
-                if (choice < 0 || choice > 5) {
-                    System.out.println("Invalid choice! Please enter a number between 0 and 5.");
+                if (choice < 0 || choice > 7) {
+                    System.out.println("Invalid choice! Please enter a number between 0 and 7.");
                     continue;
                 }
 
@@ -176,7 +342,7 @@ public class Client {
                                 long reqId = target.getId();
 
                                 if (friendRequestDao.accept(reqId)) {
-    
+
                                     userDao.addFriendship(user.userID, target.getSenderId());
                                     user.friends = new ArrayList<>(userDao.getFriends(user.userID));
                                     System.out.println("Friend request accepted.");
@@ -310,8 +476,38 @@ public class Client {
                         System.out.println("(-- Future Features --)");
                     }
 
+                    case 6 -> {
+                        // Start Voice Call
+                        System.out.println("Which friend do you want to start a voice call with?");
+                        System.out.print("Enter their ID (enter -1 to go back): ");
+                        String idLine = scanner.nextLine().trim();
+                        int userID;
+                        try {
+                            userID = Integer.parseInt(idLine);
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid ID. Returning to menu.");
+                            break;
+                        }
+                        if (userID == -1) {
+                            System.out.println("Returning to menu.");
+                            break;
+                        }
+                        User found = User.getUserById(userID, this.user.friends);
+                        if (found == null) {
+                            System.out.println("User not found in your friends list.");
+                            break;
+                        }
+                        startVoiceCall(found);
+                    }
+
+                    case 7 -> {
+                        // Stop Voice Call
+                        stopVoiceCall();
+                    }
+
                     case 0 -> {
                         System.out.println("Exit");
+                        stopVoiceCall();
                         System.exit(0);
                     }
 
@@ -322,19 +518,19 @@ public class Client {
         } catch (IOException e) {
             closeClient(socket, reader, writer);
         }
-
-
     }
-
-
 
     public void listenForMessage() {
         Thread.startVirtualThread(() -> {
             try {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    // System.out.println("NEW MESSAGE:");
-                    // System.out.println(line);
+                    if (line.startsWith("VOICE_INFO")) {
+                        System.out.println(line); // voice-related info from server
+                    } else {
+                        // Regular incoming messages
+                        System.out.println(line);
+                    }
                 }
             } catch (IOException e) {
                 // log if you want
@@ -344,71 +540,24 @@ public class Client {
         });
     }
 
-    public void closeClient(Socket socket, BufferedReader in, BufferedWriter out){
+    public void closeClient(Socket socket, BufferedReader in, BufferedWriter out) {
+        // ensure we stop any running voice call
+        stopVoiceCall();
+
         try {
-            if(in != null){
+            if (in != null) {
                 in.close();
             }
-            if(out != null){
+            if (out != null) {
                 out.close();
             }
-            if(socket != null){
+            if (socket != null) {
                 socket.close();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-//     public static void main(String[] args) throws IOException {
-
-
-//         ArrayList<User> allUsers = new ArrayList<>();
-
-//         User alice = new User(1, "Alice", "pass123");
-//         User bob = new User(2, "Bob", "secure456");
-//         User carol = new User(3, "Carol", "pw789");
-
-//         // Make them all friends with one another
-//         alice.addFriend(bob);
-//         alice.addFriend(carol);
-
-//         bob.addFriend(alice);
-//         bob.addFriend(carol);
-
-//         carol.addFriend(alice);
-//         carol.addFriend(bob);
-
-//         allUsers.add(alice);
-//         allUsers.add(carol);
-//         allUsers.add(bob);
-
-//         int port = 1234;
-//         Scanner scanner = new Scanner(System.in);
-// //        System.out.println("Please enter the server port you wish to listen on:  ");
-// //        int port = Integer.parseInt(scanner.nextLine());
-// //
-
-//         System.out.println("Enter user you'd like to use : ");
-//         int userID = scanner.nextInt();
-
-//         User found = User.getUserById(userID, allUsers);
-//         if (found != null) {
-//             System.out.println("Found user: " + found.userName);
-//         } else {
-//             System.out.println("User not found.");
-//             System.exit(0);
-//         }
-
-
-//         Socket socket = new Socket("localhost", port);
-//         Client client = new Client(socket, found);
-
-
-//         client.listenForMessage();
-//         client.mainMenu();
-
-//     }
 
     public static void main(String[] args) {
 
@@ -421,14 +570,14 @@ public class Client {
         String username = scanner.nextLine().trim();
 
         try {
-            // fnd or create user in H2 database
+            // find or create user in H2 database
             currentUser = userDao.findOrCreateByUsername(username);
 
             // loads existing friends from DB into the in memory list
             currentUser.friends = new ArrayList<>(userDao.getFriends(currentUser.userID));
 
             System.out.println("Found / created user: " + currentUser.userName +
-                               " (id " + currentUser.userID + ")");
+                    " (id " + currentUser.userID + ")");
         } catch (SQLException e) {
             System.out.println("Failed to connect to database. Exiting.");
             e.printStackTrace();
@@ -446,5 +595,5 @@ public class Client {
             e.printStackTrace();
         }
     }
-    
+
 }
