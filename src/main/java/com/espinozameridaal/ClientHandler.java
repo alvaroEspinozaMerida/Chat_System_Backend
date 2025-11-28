@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+
+//Each Connected Client gets a Client Handler
 // Handles a single connected client -- reads lines, routes messages, and stores them in the DB
 public class ClientHandler implements Runnable {
     public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
@@ -82,6 +84,105 @@ public class ClientHandler implements Runnable {
         }
     }
 
+
+    private void sendTextLine(String message) {
+        try {
+            writer.write(message);
+            writer.newLine();
+            writer.flush();
+        } catch (IOException e) {
+            closeClientHandler(socket, reader, writer);
+        }
+    }
+
+    public static ClientHandler getByUserId(long userId) {
+        synchronized (clientHandlers) {
+            for (ClientHandler ch : clientHandlers) {
+                if (ch.clientUserId == userId) {
+                    return ch;
+                }
+            }
+        }
+        return null;
+    }
+
+    public void removeClientHandler(ClientHandler clientHandler) {
+        synchronized (clientHandlers) {
+            clientHandlers.remove(clientHandler);
+        }
+        voiceUdpEndpoints.remove(clientHandler.clientUserId);
+
+        // Inform partner if in voice chat
+        if (clientHandler.inVoiceChat && clientHandler.voicePartnerId > 0) {
+            ClientHandler partner = getByUserId(clientHandler.voicePartnerId);
+            if (partner != null) {
+                partner.inVoiceChat = false;
+                partner.voicePartnerId = -1;
+                partner.sendTextLine("VOICE_INFO " + clientHandler.clientUsername +
+                        " disconnected from voice chat.");
+            }
+        }
+
+        String msg = "ChatServer.Server: " + clientHandler.clientUsername + " has left the chat !";
+        synchronized (clientHandlers) {
+            for (ClientHandler ch : clientHandlers) {
+                try {
+                    ch.writer.write(msg);
+                    ch.writer.newLine();
+                    ch.writer.flush();
+                } catch (IOException e) {
+                    ch.closeClientHandler(ch.socket, ch.reader, ch.writer);
+                }
+            }
+        }
+    }
+
+    private void broadcastMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return;
+        }
+
+        ParsedMessage parsed = MessageParser.parse(message);
+        if (parsed == null) {
+            System.out.println("Could not parse message: " + message);
+            return;
+        }
+
+        System.out.println("SENDING");
+        System.out.println("to user: " + parsed.userName);
+        System.out.println("msg: " + parsed.message);
+
+        synchronized (clientHandlers) {
+            for (ClientHandler clientHandler : clientHandlers) {
+                try {
+                    if (!clientHandler.clientUsername.equals(this.clientUsername)
+                            && Objects.equals(parsed.userName, clientHandler.clientUsername)) {
+                        // 1) Save to DB
+                        try {
+                            messageDao.saveMessage(this.clientUserId, clientHandler.clientUserId, parsed.message);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+
+                        // 2) Deliver to receiver
+                        clientHandler.writer.write(this.clientUsername + ": " + parsed.message);
+                        clientHandler.writer.newLine();
+                        clientHandler.writer.flush();
+                    }
+                } catch (IOException e) {
+                    closeClientHandler(socket, reader, writer);
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+//    UDP VOICE ! HANDLE LATER
+
     private void handleVoiceStart(String message) {
         String[] parts = message.split("\\s+");
         if (parts.length < 2) {
@@ -135,97 +236,6 @@ public class ClientHandler implements Runnable {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void broadcastMessage(String message) {
-        if (message == null || message.isBlank()) {
-            return;
-        }
-
-        ParsedMessage parsed = MessageParser.parse(message);
-        if (parsed == null) {
-            System.out.println("Could not parse message: " + message);
-            return;
-        }
-
-        System.out.println("SENDING");
-        System.out.println("to user: " + parsed.userName);
-        System.out.println("msg: " + parsed.message);
-
-        synchronized (clientHandlers) {
-            for (ClientHandler clientHandler : clientHandlers) {
-                try {
-                    if (!clientHandler.clientUsername.equals(this.clientUsername)
-                            && Objects.equals(parsed.userName, clientHandler.clientUsername)) {
-                        // 1) Save to DB
-                        try {
-                            messageDao.saveMessage(this.clientUserId, clientHandler.clientUserId, parsed.message);
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-
-                        // 2) Deliver to receiver
-                        clientHandler.writer.write(this.clientUsername + ": " + parsed.message);
-                        clientHandler.writer.newLine();
-                        clientHandler.writer.flush();
-                    }
-                } catch (IOException e) {
-                    closeClientHandler(socket, reader, writer);
-                }
-            }
-        }
-    }
-
-    private void sendTextLine(String message) {
-        try {
-            writer.write(message);
-            writer.newLine();
-            writer.flush();
-        } catch (IOException e) {
-            closeClientHandler(socket, reader, writer);
-        }
-    }
-
-    public static ClientHandler getByUserId(long userId) {
-        synchronized (clientHandlers) {
-            for (ClientHandler ch : clientHandlers) {
-                if (ch.clientUserId == userId) {
-                    return ch;
-                }
-            }
-        }
-        return null;
-    }
-
-    public void removeClientHandler(ClientHandler clientHandler) {
-        synchronized (clientHandlers) {
-            clientHandlers.remove(clientHandler);
-        }
-        voiceUdpEndpoints.remove(clientHandler.clientUserId);
-
-        // Inform partner if in voice chat
-        if (clientHandler.inVoiceChat && clientHandler.voicePartnerId > 0) {
-            ClientHandler partner = getByUserId(clientHandler.voicePartnerId);
-            if (partner != null) {
-                partner.inVoiceChat = false;
-                partner.voicePartnerId = -1;
-                partner.sendTextLine("VOICE_INFO " + clientHandler.clientUsername +
-                        " disconnected from voice chat.");
-            }
-        }
-
-        String msg = "ChatServer.Server: " + clientHandler.clientUsername + " has left the chat !";
-        synchronized (clientHandlers) {
-            for (ClientHandler ch : clientHandlers) {
-                try {
-                    ch.writer.write(msg);
-                    ch.writer.newLine();
-                    ch.writer.flush();
-                } catch (IOException e) {
-                    ch.closeClientHandler(ch.socket, ch.reader, ch.writer);
-                }
-            }
         }
     }
 
