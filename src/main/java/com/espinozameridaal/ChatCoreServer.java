@@ -12,13 +12,14 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Executors;
 
-public class Server {
+//Represents Raw TCP Chat Engine
+public class ChatCoreServer {
     private ServerSocket serverSocket;
 
     private static final int VOICE_UDP_PORT = 50005;
     private static final int VOICE_BUFFER_SIZE = 1024 + 8; // 8 bytes for userId + audio
 
-    public Server(ServerSocket serverSocket) {
+    public ChatCoreServer(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
     }
 
@@ -55,6 +56,23 @@ public class Server {
         }
     }
 
+
+
+    public static void main(String[] args) {
+        try {
+            // init H2 and create tables
+            Database.init();
+
+            ServerSocket serverSocket = new ServerSocket(1234);
+            ChatCoreServer server = new ChatCoreServer(serverSocket);
+            server.start();
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+//UDP VOICE AUDIO STUFF
     private void runVoiceRelayLoop() {
         byte[] buffer = new byte[VOICE_BUFFER_SIZE];
         try (DatagramSocket udpSocket = new DatagramSocket(VOICE_UDP_PORT)) {
@@ -92,16 +110,7 @@ public class Server {
         }
     }
 
-    public static void main(String[] args) {
-        try {
-            // init H2 and create tables
-            Database.init();
 
-            ServerSocket serverSocket = new ServerSocket(1234);
-            Server server = new Server(serverSocket);
-            server.start();
-        } catch (SQLException | IOException e) {
-            e.printStackTrace();
-        }
-    }
+
+
 }
