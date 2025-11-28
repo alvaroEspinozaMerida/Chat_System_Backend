@@ -1,4 +1,4 @@
-package com.espinozameridaal.ChatServer;
+package com.espinozameridaal.examples.ChatServer;
 
 import java.io.IOException;
 import java.net.ServerSocket;
