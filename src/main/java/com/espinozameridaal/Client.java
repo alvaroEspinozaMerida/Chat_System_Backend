@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.nio.ByteBuffer;
@@ -60,7 +61,120 @@ public class Client {
         }
     }
 
-    // === Voice chat helpers ===
+    public User getUser() {
+        return user;
+    }
+
+    public FriendRequestDao getFriendRequestDao() {
+        return friendRequestDao;
+    }
+
+    public UserDao getUserDao() {
+        return userDao;
+    }
+
+    public MessageDao getMessageDao() {
+        return messageDao;
+    }
+
+//sending message in CLI : main difference is GUI does not run off loop
+    public void sendMessage() {
+        try {
+            Scanner scanner = new Scanner(System.in);
+            while (socket.isConnected()) {
+                System.out.println(">");
+                String message = scanner.nextLine();
+                writer.write(this.user.userName + ": " + message);
+                writer.newLine();
+                writer.flush();
+            }
+        } catch (IOException e) {
+            closeClient(socket, reader, writer);
+        }
+    }
+
+    public void sendToUser(User user, String message) {
+
+        try {
+            String payload = "ID <" + user.userID + "> :" + user.userName + ": " + message;
+            writer.write(payload);
+            writer.newLine();
+            writer.flush();
+
+        } catch (IOException e) {
+            // Handle gracefully (server disconnected, etc.)
+//            close();
+        }
+
+    }
+
+    public void listenForMessage(MessageListener listener ) {
+        Thread.startVirtualThread(() -> {
+            try {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("VOICE_INFO")) {
+                        listener.onMessageReceived(line);
+                    } else {
+                        // Regular incoming messages
+                        listener.onMessageReceived(line);
+                    }
+                }
+            } catch (IOException e) {
+                // log if you want
+            } finally {
+                closeClient(socket, reader, writer);
+            }
+        });
+
+    }
+
+    public void closeClient(Socket socket, BufferedReader in, BufferedWriter out) {
+        // ensure we stop any running voice call
+        stopVoiceCall();
+
+        try {
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+            if (socket != null) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public List<FriendRequest> getFriendRequests() throws SQLException {
+        return friendRequestDao.getIncomingPending(user.getUserID());
+    }
+
+    public void addFriendship(long userId, long friendId) throws SQLException {
+        System.out.println("adding friend "+ userId + " with " + friendId);
+        userDao.addFriendship(userId,friendId);
+    }
+
+
+    public void updateFriendsList() throws SQLException {
+        user.friends =  new ArrayList<>(userDao.getFriends(user.getUserID()));
+    }
+
+    public ArrayList<User> getFriendList(){
+        return user.friends;
+    }
+
+
+
+
+
+
+
+
+// === Voice chat helpers ===
 
     private static AudioFormat getAudioFormat() {
         float sampleRate = 16000.0f;
@@ -216,21 +330,7 @@ public class Client {
 
     // === Existing stuff ===
 
-    public void sendMessage() {
-        try {
-            Scanner scanner = new Scanner(System.in);
-            while (socket.isConnected()) {
-                System.out.println(">");
-                String message = scanner.nextLine();
-                writer.write(this.user.userName + ": " + message);
-                writer.newLine();
-                writer.flush();
-            }
-        } catch (IOException e) {
-            closeClient(socket, reader, writer);
-        }
-    }
-
+//    --------------------------------OLD CLI VERSION--------------------------------------
     public void displayMenu() {
         System.out.println("Menu");
         System.out.println("1. Show Friends");
@@ -242,6 +342,8 @@ public class Client {
         System.out.println("7. Stop Voice Call");
         System.out.println("0. Exit");
     }
+
+
 
     // RUNs off main thread; builds off the send message function
     public void mainMenu() {
@@ -519,81 +621,48 @@ public class Client {
             closeClient(socket, reader, writer);
         }
     }
+//    --------------------------------OLD CLI VERSION--------------------------------------
 
-    public void listenForMessage() {
-        Thread.startVirtualThread(() -> {
-            try {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (line.startsWith("VOICE_INFO")) {
-                        System.out.println(line); // voice-related info from server
-                    } else {
-                        // Regular incoming messages
-                        System.out.println(line);
-                    }
-                }
-            } catch (IOException e) {
-                // log if you want
-            } finally {
-                closeClient(socket, reader, writer);
-            }
-        });
-    }
 
-    public void closeClient(Socket socket, BufferedReader in, BufferedWriter out) {
-        // ensure we stop any running voice call
-        stopVoiceCall();
 
-        try {
-            if (in != null) {
-                in.close();
-            }
-            if (out != null) {
-                out.close();
-            }
-            if (socket != null) {
-                socket.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
-    public static void main(String[] args) {
 
-        int port = 1234;
-        Scanner scanner = new Scanner(System.in);
-        UserDao userDao = new UserDao();          // DB instead of alice and rest of them list
-        User currentUser;
 
-        System.out.println("Enter username you’d like to use: ");
-        String username = scanner.nextLine().trim();
-
-        try {
-            // find or create user in H2 database
-            currentUser = userDao.findOrCreateByUsername(username);
-
-            // loads existing friends from DB into the in memory list
-            currentUser.friends = new ArrayList<>(userDao.getFriends(currentUser.userID));
-
-            System.out.println("Found / created user: " + currentUser.userName +
-                    " (id " + currentUser.userID + ")");
-        } catch (SQLException e) {
-            System.out.println("Failed to connect to database. Exiting.");
-            e.printStackTrace();
-            return;
-        }
-
-        try {
-            Socket socket = new Socket("localhost", port);
-            Client client = new Client(socket, currentUser, userDao);
-
-            client.listenForMessage();
-            client.mainMenu();
-        } catch (IOException e) {
-            System.out.println("Could not connect to server on port " + port);
-            e.printStackTrace();
-        }
-    }
+//    public static void main(String[] args) {
+//
+//        int port = 1234;
+//        Scanner scanner = new Scanner(System.in);
+//        UserDao userDao = new UserDao();          // DB instead of alice and rest of them list
+//        User currentUser;
+//
+//        System.out.println("Enter username you’d like to use: ");
+//        String username = scanner.nextLine().trim();
+//
+//        try {
+//            // find or create user in H2 database
+//            currentUser = userDao.findOrCreateByUsername(username);
+//
+//            // loads existing friends from DB into the in memory list
+//            currentUser.friends = new ArrayList<>(userDao.getFriends(currentUser.userID));
+//
+//            System.out.println("Found / created user: " + currentUser.userName +
+//                    " (id " + currentUser.userID + ")");
+//        } catch (SQLException e) {
+//            System.out.println("Failed to connect to database. Exiting.");
+//            e.printStackTrace();
+//            return;
+//        }
+//
+//        try {
+//            Socket socket = new Socket("localhost", port);
+//            Client client = new Client(socket, currentUser, userDao);
+//
+//            client.listenForMessage();
+//            client.mainMenu();
+//        } catch (IOException e) {
+//            System.out.println("Could not connect to server on port " + port);
+//            e.printStackTrace();
+//        }
+//    }
 
 }

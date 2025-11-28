@@ -36,6 +36,13 @@ public class User {
         }
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "userID=" + userID +
+                ", userName='" + userName + '\'' +
+                '}';
+    }
 
     public static User getUserById(long id, ArrayList<User> users) {
         for (User u : users) {
