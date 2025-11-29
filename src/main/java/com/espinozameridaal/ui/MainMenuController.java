@@ -15,6 +15,9 @@ import javafx.scene.layout.HBox;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MainMenuController {
 
@@ -22,7 +25,7 @@ public class MainMenuController {
     @FXML
     private Label currentUserLabel;
     @FXML
-    private ComboBox<User> friendComboBox; // or custom User type
+    private ListView<User> friendListView;
     @FXML
     private Label friendRequestStatus;
     @FXML
@@ -47,6 +50,8 @@ public class MainMenuController {
 //    Connection to Client , Client represents Socket Connections to Server ; each GUI get's one Client
     private Client client;
 
+    private ScheduledExecutorService autoRefreshScheduler;
+
     /**
      *  Initalizes the MainMenuController
      *
@@ -63,12 +68,14 @@ public class MainMenuController {
         this.client = client;
         currentUserLabel.setText(client.getUser().userName);
 
-        createComboBoxView();
+        createFriendsView();
         createFriendRequestView();
 
         client.listenForMessage(line ->
                 Platform.runLater(() -> chatArea.appendText(line + "\n"))
         );
+
+        startAutoRefresh();
 
     }
 
@@ -80,42 +87,54 @@ public class MainMenuController {
      *
      *  ComboBox is primary widget used to handle currently selected friends
      */
-    public void createComboBoxView() {
-
+    public void createFriendsView() {
         List<User> friends = client.getUser().friends;
 
+        // Always use a nice renderer for User objects
+        friendListView.setCellFactory(listView -> new ListCell<>() {
+            private final ContextMenu contextMenu;
+            {
+                MenuItem removeItem = new MenuItem("Remove friend");
+                removeItem.setOnAction(e -> {
+                    User friend = getItem();
+                    if (friend != null) {
+                        confirmAndRemoveFriend(friend);
+                    }
+                });
+                contextMenu = new ContextMenu(removeItem);
+            }
+
+            @Override
+            protected void updateItem(User user, boolean empty) {
+                super.updateItem(user, empty);
+                if (empty || user == null) {
+                    setText(null);
+                    setContextMenu(null);
+                } else {
+                    setText(user.userName + " (id " + user.userID + ")");
+                    setContextMenu(contextMenu);
+                }
+            }
+        });
+
         if (friends != null && !friends.isEmpty()) {
+            ObservableList<User> items = FXCollections.observableArrayList(friends);
+            friendListView.setItems(items);
 
-            friendComboBox.setItems(FXCollections.observableArrayList(friends));
-
-//            fill in drop down menu
-            friendComboBox.setCellFactory(listView -> new ListCell<>() {
-                protected void updateItem(User user, boolean empty) {
-                    super.updateItem(user, empty);
-                    setText(empty || user == null ? null : user.userName);
-                }
-            });
-//            set button to specific user that gets selcted by user, their is only one button
-            friendComboBox.setButtonCell(new ListCell<>() {
-                protected void updateItem(User user, boolean empty) {
-                    super.updateItem(user, empty);
-                    setText(empty || user == null ? null : user.userName);
-                }
-            });
-//            action event listener that sets the currentChat label to selected user
-//            and loads in conversation calling helper function
-            friendComboBox.getSelectionModel().selectedItemProperty().addListener(
+            friendListView.getSelectionModel().selectedItemProperty().addListener(
                     (obs, oldFriend, newFriend) -> {
                         if (newFriend != null) {
-                            currentChat.setText(newFriend == null ? null : "Current Chatting with:  "+ newFriend.userName);
+                            currentFriend = newFriend;
+                            currentChat.setText("Current chatting with: " + newFriend.userName);
                             loadConversation(newFriend);
                         }
                     }
             );
-            friendComboBox.getSelectionModel().selectFirst();
+
+            friendListView.getSelectionModel().selectFirst();
 
         } else {
-            friendComboBox.setItems(FXCollections.observableArrayList());
+            friendListView.setItems(FXCollections.observableArrayList());
             chatArea.appendText("You have no friends yet. Add some from the menu.\n");
         }
     }
@@ -140,7 +159,7 @@ public class MainMenuController {
         }
 
         pendingRequests = FXCollections.observableArrayList(fromDb);
-        pendingRequestsList.setItems(FXCollections.observableArrayList(pendingRequests));
+        pendingRequestsList.setItems(pendingRequests);
 
         pendingRequestsList.setCellFactory(listView -> new ListCell<>() {
 //            widgets within each cell of the friendRequestView
@@ -187,8 +206,7 @@ public class MainMenuController {
                 client.addFriendship(client.getUser().userID, fr.getSenderId());
                 client.updateFriendsList();
 
-//                friendComboBox.setItems(FXCollections.observableArrayList(client.getFriendList()));
-                createComboBoxView();
+                createFriendsView();
 
             }
         } catch (SQLException ex) {
@@ -225,6 +243,47 @@ public class MainMenuController {
         refreshPendingRequests();
     }
 
+    private void startAutoRefresh() {
+        autoRefreshScheduler = Executors.newSingleThreadScheduledExecutor();
+        autoRefreshScheduler.scheduleAtFixedRate(() -> {
+            try {
+                client.updateFriendsList();
+                List<User> friendsSnapshot = new ArrayList<>(client.getUser().friends);
+                List<FriendRequest> reqSnapshot =
+                        client.getFriendRequestDao().getIncomingPending(client.getUser().userID);
+                Platform.runLater(() -> {
+                    // previously selected friend
+                    User selected = friendListView.getSelectionModel().getSelectedItem();
+                    Long selectedId = (selected != null) ? selected.userID : null;
+
+                    ObservableList<User> items = friendListView.getItems();
+                    if (items == null) {
+                        items = FXCollections.observableArrayList();
+                    }
+                    items.setAll(friendsSnapshot);
+                    friendListView.setItems(items);
+
+                    // Restore selection
+                    if (selectedId != null) {
+                        for (User u : items) {
+                            if (u.userID == selectedId) {
+                                friendListView.getSelectionModel().select(u);
+                                currentFriend = u;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (pendingRequests == null) {
+                        pendingRequests = FXCollections.observableArrayList();
+                    }
+                    pendingRequests.setAll(reqSnapshot);
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, 2, 2, TimeUnit.SECONDS);
+    }
 
     @FXML
     public void onSendFriendRequest() {
@@ -303,10 +362,19 @@ public class MainMenuController {
     @FXML
     private void onSendMessage() {
         String text = messageField.getText().trim();
-        User friend = friendComboBox.getValue();
-        if (text.isEmpty() || currentFriend == null) {
+        if (text.isEmpty()) {
             return;
         }
+
+        // remembr currentFriend
+        User friend = currentFriend;
+        if (friend == null) {
+            friend = friendListView.getSelectionModel().getSelectedItem();
+        }
+        if (friend == null) {
+            return;
+        }
+
         messageField.clear();
         client.sendToUser(friend, text);
         chatArea.appendText("[now] You: " + text + "\n");
@@ -315,11 +383,42 @@ public class MainMenuController {
 
     @FXML
     private void onRefreshFriends() {
-
-
+        try {
+            client.updateFriendsList();
+            createFriendsView();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    private void confirmAndRemoveFriend(User friend) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Remove friend");
+        alert.setHeaderText(null);
+        alert.setContentText("Remove " + friend.userName + " from your friends?");
 
+        alert.showAndWait().ifPresent(result -> {
+            if (result == ButtonType.OK) {
+                try {
+                    client.removeFriendship(client.getUser().userID, friend.userID);
+                    client.getMessageDao().deleteConversation(client.getUser().userID, friend.userID);
+                    client.updateFriendsList();
+                    createFriendsView();
+                    chatArea.clear();
+                    currentChat.setText("Current chatting with: ");
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
-
+    @FXML
+    private void onRemoveFriend() {
+        User friend = friendListView.getSelectionModel().getSelectedItem();
+        if (friend == null) {
+            return;
+        }
+        confirmAndRemoveFriend(friend);
+    }
 }

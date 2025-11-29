@@ -50,16 +50,10 @@
             <Label text="Friends / Users"
                    style="-fx-font-weight: bold;"/>
 
-            <!-- Existing Friend Selection -->
-            <ComboBox fx:id="friendComboBox"
-                      promptText="Select user to chat with"/>
-
-            <Button text="Refresh list"
-                    onAction="#onRefreshFriends"/>
-
-
-            <Button text="Refresh Pending Request"
-                    onAction="#onRefreshRequest"/>
+            <!-- Friends List -->
+            <ListView fx:id="friendListView"
+                      prefHeight="150"
+                      VBox.vgrow="ALWAYS"/>
 
             <Label text="Pending Friend Requests: "
                    style="-fx-font-weight: bold;"/>
