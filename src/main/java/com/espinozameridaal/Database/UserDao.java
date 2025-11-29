@@ -148,4 +148,26 @@ public class UserDao {
             ps.executeUpdate();
         }
     }
+
+    // Remove friendship 
+    public void removeFriendship(long userId, long friendId) throws SQLException {
+        long a = Math.min(userId, friendId);
+        long b = Math.max(userId, friendId);
+
+        String sql = """
+            DELETE FROM friendships
+            WHERE user_id = ? AND friend_id = ?
+            """;
+
+        try (Connection conn = Database.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setLong(1, a);
+            ps.setLong(2, b);
+            ps.executeUpdate();
+        }
+    }
+
+
+    
 }

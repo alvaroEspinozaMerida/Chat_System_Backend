@@ -88,4 +88,18 @@ public class MessageDao {
         }
         return list;
     }
+
+    public void deleteConversation(long userId1, long userId2) throws SQLException {
+        String sql = "DELETE FROM messages WHERE " +
+                     "(sender_id = ? AND receiver_id = ?) OR " +
+                     "(sender_id = ? AND receiver_id = ?)";
+        try (Connection conn = Database.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, userId1);
+            ps.setLong(2, userId2);
+            ps.setLong(3, userId2);
+            ps.setLong(4, userId1);
+            ps.executeUpdate();
+        }
+    }
 }

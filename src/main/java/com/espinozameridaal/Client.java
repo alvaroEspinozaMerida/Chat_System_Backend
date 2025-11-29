@@ -150,7 +150,7 @@ public class Client {
 
 
     public List<FriendRequest> getFriendRequests() throws SQLException {
-        return friendRequestDao.getIncomingPending(user.getUserID());
+        return friendRequestDao.getIncomingPending(user.userID);
     }
 
     public void addFriendship(long userId, long friendId) throws SQLException {
@@ -160,18 +160,20 @@ public class Client {
 
 
     public void updateFriendsList() throws SQLException {
-        user.friends =  new ArrayList<>(userDao.getFriends(user.getUserID()));
+        user.friends = new ArrayList<>(userDao.getFriends(user.userID));
     }
 
     public ArrayList<User> getFriendList(){
         return user.friends;
     }
 
+    public void removeFriendship(long userId, long friendId) throws SQLException {
+        // this del friendship both directions
+        userDao.removeFriendship(userId, friendId);
 
-
-
-
-
+        // refresh current user's friends list
+        user.friends = new ArrayList<>(userDao.getFriends(user.userID));
+    }
 
 
 // === Voice chat helpers ===
