@@ -208,8 +208,32 @@ These tables are created automatically the first time the server runs, by callin
   - A standalone tool like DB Browser for SQLite.
 - Typical queries for inspection:
   ```sql
+
   SELECT * FROM users;
   SELECT * FROM friendships;
   SELECT * FROM friend_requests;
   SELECT * FROM messages;
   ```
+
+---
+
+## Recent Updates
+
+### Real-Time UI Updates
+- The friends list and pending friend requests now refresh automatically every 2 seconds using a scheduled background task.
+
+### Friends List UI
+- The old ComboBox was replaced with a ListView for better visibility.
+- Right-click (Context Menu) now allows removing a friend.
+
+### Symmetric Friendship Handling
+- When a friend request is accepted, friendships are inserted for **both** users immediately.
+- Both clients see the updated friends list in real time.
+
+### Removing Friends
+- When a user removes a friend:
+  - The friendship is deleted from the `friendships` table for both directions.
+  - The message history between the two users is permanently deleted from the `messages` table.
+  - The friend list updates live on both clients.
+
+---
