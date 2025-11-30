@@ -47,8 +47,17 @@
             </padding>
 
             <!-- Section Title -->
-            <Label text="Friends / Users"
-                   style="-fx-font-weight: bold;"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Friends / Users"
+                       style="-fx-font-weight: bold;"/>
+
+                <!-- Leave Call button, hidden by default -->
+                <Button fx:id="leaveCallButton"
+                        text="Leave call"
+                        visible="false"
+                        managed="false"
+                        onAction="#onLeaveCall"/>
+            </HBox>
 
             <!-- Friends List -->
             <ListView fx:id="friendListView"

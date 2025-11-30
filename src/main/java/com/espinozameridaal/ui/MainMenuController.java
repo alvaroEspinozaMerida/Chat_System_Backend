@@ -52,6 +52,8 @@ public class MainMenuController {
 
     private ScheduledExecutorService autoRefreshScheduler;
 
+    private String vcStatus = "";
+
     /**
      *  Initalizes the MainMenuController
      *
@@ -94,6 +96,17 @@ public class MainMenuController {
         friendListView.setCellFactory(listView -> new ListCell<>() {
             private final ContextMenu contextMenu;
             {
+                // new call item
+                MenuItem callItem = new MenuItem("Call friend");
+                callItem.setOnAction(e -> {
+                    User friend = getItem();
+                    if (friend != null) {
+                        client.startVoiceCall(friend);
+                        vcStatus = " - In call with: " +friend.userName;
+                        setCallActive(true);
+                    }
+                });
+
                 MenuItem removeItem = new MenuItem("Remove friend");
                 removeItem.setOnAction(e -> {
                     User friend = getItem();
@@ -101,7 +114,8 @@ public class MainMenuController {
                         confirmAndRemoveFriend(friend);
                     }
                 });
-                contextMenu = new ContextMenu(removeItem);
+
+                contextMenu = new ContextMenu(callItem, removeItem);
             }
 
             @Override
@@ -125,7 +139,7 @@ public class MainMenuController {
                     (obs, oldFriend, newFriend) -> {
                         if (newFriend != null) {
                             currentFriend = newFriend;
-                            currentChat.setText("Current chatting with: " + newFriend.userName);
+                            currentChat.setText("Current chatting with: " + newFriend.userName + vcStatus);
                             loadConversation(newFriend);
                         }
                     }
@@ -405,7 +419,7 @@ public class MainMenuController {
                     client.updateFriendsList();
                     createFriendsView();
                     chatArea.clear();
-                    currentChat.setText("Current chatting with: ");
+                    currentChat.setText("Current chatting with: " + vcStatus);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -420,5 +434,28 @@ public class MainMenuController {
             return;
         }
         confirmAndRemoveFriend(friend);
+    }
+
+    // vc buttons
+    private boolean callActive = false;
+
+    @FXML
+    private Button leaveCallButton;
+
+    public void setCallActive(boolean active) {
+        this.callActive = active;
+        leaveCallButton.setVisible(active);
+        leaveCallButton.setManaged(active);
+    }
+
+    @FXML
+    private void onLeaveCall() {
+        // whatever you do to terminate the call:
+        // e.g., client.leaveCall(), stopAudio(), notifyServer(), etc.
+
+        // then update UI state
+        vcStatus = "";
+        client.stopVoiceCall();
+        setCallActive(false);
     }
 }

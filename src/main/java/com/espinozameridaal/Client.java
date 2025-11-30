@@ -187,7 +187,7 @@ public class Client {
         return new AudioFormat(sampleRate, sampleSizeInBits, channels, signed, bigEndian);
     }
 
-    private void startVoiceCall(User friend) {
+    public void startVoiceCall(User friend) {
         if (voiceThreadsRunning) {
             System.out.println("A voice call is already running. Stop it first.");
             return;
@@ -300,7 +300,7 @@ public class Client {
         }
     }
 
-    private void stopVoiceCall() {
+    public void stopVoiceCall() {
         if (!voiceThreadsRunning) {
             return;
         }
