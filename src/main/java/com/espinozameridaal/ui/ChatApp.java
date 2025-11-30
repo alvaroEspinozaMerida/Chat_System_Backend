@@ -21,6 +21,11 @@ public class ChatApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 
+        stage.setOnCloseRequest(event -> {
+            System.out.println("Window close requested — shutting down JVM.");
+            System.exit(0);
+        });
+
 //TEMP "LOGIN"
         int port = 1234;
         UserDao userDao = new UserDao();         
@@ -28,7 +33,7 @@ public class ChatApp extends Application {
 
         Scanner scanner = new Scanner(System.in);
         
-        System.out.println("Enter username you’d like to use: ");
+        System.out.println("Enter username: ");
         String username = scanner.nextLine().trim();
         
 //        Built off old version of the CLI program; need to make sure to add wornings as 
@@ -50,11 +55,12 @@ public class ChatApp extends Application {
 
         try {
             Socket socket = new Socket("localhost", port);
-            client =  new Client(socket, currentUser, userDao);
+            client = new Client(socket, currentUser, userDao);
             
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.out.println("Could not connect to server on port " + port);
-            e.printStackTrace();
+            System.out.println("Try again when the server is up.");
+            System.exit(0);
         }
 
         
@@ -68,11 +74,17 @@ public class ChatApp extends Application {
         controller.init(client);
 
         Scene scene = new Scene(root, 800, 600);
-        stage.setTitle("Java TCP Chat - Alice");
+        stage.setTitle("Java TCP Chat");
         stage.setScene(scene);
         stage.show();
     }
 
+    // fix app not closing
+    @Override
+    public void stop() throws Exception {
+        System.out.println("Stopping ChatApp...");
+        System.exit(0);
+    }
 
 
     public static void main(String[] args) {
