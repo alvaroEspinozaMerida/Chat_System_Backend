@@ -45,6 +45,12 @@ public class UserDao {
         return createUser(username);
     }
 
+    public boolean existsByUsername(String username) throws SQLException {
+        return findByUsername(username) != null;
+    }
+
+
+
     public User findByUsername(String username) throws SQLException {
         String sql = "SELECT id, username FROM users WHERE username = ?";
         try (Connection conn = Database.getConnection();

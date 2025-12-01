@@ -11,6 +11,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -94,6 +95,12 @@ public class MainMenuController {
 
         // Always use a nice renderer for User objects
         friendListView.setCellFactory(listView -> new ListCell<>() {
+
+            {
+                getStyleClass().add("list-cell");
+            }
+
+
             private final ContextMenu contextMenu;
             {
                 // new call item
@@ -177,12 +184,20 @@ public class MainMenuController {
 
         pendingRequestsList.setCellFactory(listView -> new ListCell<>() {
 //            widgets within each cell of the friendRequestView
-            private final HBox root = new HBox(8);
+            private final VBox root = new VBox(8);
             private final Label fromLabel = new Label();
+
+            private final HBox buttonRow = new HBox(8);
             private final Button acceptButton = new Button("Accept");
             private final Button declineButton = new Button("Decline");
+
             {
-                root.getChildren().addAll(fromLabel, acceptButton, declineButton);
+                acceptButton.getStyleClass().add("friend-btn");
+                declineButton.getStyleClass().add("friend-btn");
+
+                buttonRow.getChildren().addAll(acceptButton, declineButton);
+                root.getChildren().addAll(fromLabel,buttonRow);
+
                 acceptButton.setOnAction(e -> {
                     FriendRequest fr = getItem();
                     if (fr != null) {
@@ -236,10 +251,6 @@ public class MainMenuController {
             throw new RuntimeException(ex);
         }
     }
-
-
-
-
 
     public void refreshPendingRequests() {
         List<FriendRequest> fromDb =

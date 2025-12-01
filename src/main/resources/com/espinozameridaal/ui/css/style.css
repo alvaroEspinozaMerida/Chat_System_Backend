@@ -1,0 +1,297 @@
+.root {
+    -fx-background-color: #020617;
+    -fx-font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    -fx-text-fill: #e5e7eb;
+}
+
+.top-bar {
+    -fx-padding: 10 16 10 16;
+    -fx-background-color: #020617;
+    -fx-border-color: #0f172a;
+    -fx-border-width: 0 0 1 0;
+
+}
+
+.logo-circle, .logo-circle-small {
+    -fx-background-color: #3b82f6;
+    -fx-background-radius: 999;
+    -fx-padding: 16;
+}
+
+.logo-circle-small {
+    -fx-padding: 8;
+}
+
+.logo-emoji {
+    -fx-font-size: 32px;
+}
+
+.logo-emoji-small {
+    -fx-font-size: 16px;
+}
+
+.app-title {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.app-subtitle {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 13px;
+}
+
+.login-card {
+    -fx-padding: 24;
+    -fx-background-color: #020617;
+    -fx-background-radius: 18;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.75), 30, 0.2, 0, 12);
+    -fx-border-color: #1f2937;
+    -fx-border-radius: 18;
+}
+
+.card-title {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.card-subtitle {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 12px;
+}
+
+.field-label {
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 11px;
+}
+
+.text-input {
+    -fx-background-color: #020617;
+    -fx-text-fill: #e5e7eb;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #1f2937;
+    -fx-padding: 8 10 8 10;
+}
+
+.text-input:focused {
+    -fx-border-color: #3b82f6;
+}
+
+.primary-button {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+    -fx-padding: 8 16 8 16;
+    -fx-font-weight: bold;
+}
+
+.primary-button:hover {
+    -fx-background-color: #2563eb;
+}
+
+.error-label {
+    -fx-text-fill: #f97373;
+    -fx-font-size: 11px;
+}
+
+.demo-box {
+    -fx-padding: 8 10 8 10;
+    -fx-background-color: #020617;
+    -fx-background-radius: 10;
+    -fx-border-color: #1f2937;
+    -fx-border-radius: 10;
+}
+
+.demo-title {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.demo-line {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 11px;
+}
+
+.top-title {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.top-dot {
+    -fx-text-fill: #4b5563;
+    -fx-font-size: 14px;
+    -fx-padding: 0 4 0 4;
+}
+
+.top-user {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 13px;
+}
+
+.sidebar {
+    -fx-background-color: #020617;
+    -fx-padding: 10;
+    -fx-pref-width: 260;
+    -fx-border-color: #0f172a;
+    -fx-border-width: 0 1 0 0;
+}
+
+.search-input {
+    -fx-background-color: #020617;
+    -fx-text-fill: #e5e7eb;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-color: #1f2937;
+    -fx-padding: 6 12 6 12;
+}
+
+.chat-pane {
+    -fx-background-color: #020617;
+}
+
+.chat-header {
+    -fx-padding: 10 14 10 14;
+    -fx-border-color: #0f172a;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-color: #020617;
+}
+
+.avatar-circle {
+    -fx-background-color: #3b82f6;
+    -fx-background-radius: 999;
+    -fx-padding: 10;
+}
+
+.avatar-text {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.chat-title {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.chat-subtitle {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 11px;
+}
+
+.messages-list {
+    -fx-background-color: #020617;
+}
+
+.message-bar {
+    -fx-padding: 10;
+    -fx-background-color: #020617;
+    -fx-border-color: #0f172a;
+    -fx-border-width: 1 0 0 0;
+}
+
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #9ca3af;
+    -fx-border-color: #1f2937;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
+    -fx-padding: 4 10 4 10;
+}
+
+.list-style{
+    -fx-control-inner-background: #0a2540;
+    -fx-text-fill: white;
+    -fx-highlight-fill: #1e5aa8;
+    -fx-highlight-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+
+
+/* Style the individual cells */
+.list-style .list-cell {
+    -fx-background-color: #0a2540;
+    -fx-text-fill: white;
+}
+
+/* Hover */
+.list-style .list-cell:hover {
+    -fx-background-color: #113a66;
+    -fx-text-fill: white;
+}
+
+/* Selected */
+.list-style .list-cell:selected {
+    -fx-background-color: #1e5aa8;   /* selection color */
+    -fx-text-fill: white;
+}
+
+/* Focused selection (when ListView has keyboard focus) */
+.list-style .list-cell:filled:selected:focused {
+    -fx-background-color: #1e5aa8;
+    -fx-text-fill: white;
+}
+
+/* Remove weird highlight borders */
+.list-style .list-cell:focused {
+    -fx-background-insets: 0;
+    -fx-padding: 4px;
+}
+
+.friend-btn {
+    -fx-background-color: #1e5aa8;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+
+    -fx-font-size: 10px;
+    -fx-min-width: 30;
+    -fx-max-width: 50;
+
+}
+
+.friend-btn:hover {
+    -fx-background-color: #2b75c9;
+}
+
+.friend-btn:pressed {
+    -fx-background-color: #0f3968;
+}
+
+
+#pendingRequestsList{
+    -fx-control-inner-background: #0a2540;
+    -fx-text-fill: white;
+    -fx-highlight-fill: #1e5aa8;
+    -fx-highlight-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+
+
+#chatArea {
+    -fx-control-inner-background: #0a2540;
+    -fx-text-fill: white;
+    -fx-highlight-fill: #1e5aa8;
+    -fx-highlight-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+/* Optional: remove the light border when focused */
+#chatArea:focused {
+    -fx-faint-focus-color: transparent;
+    -fx-focus-color: transparent;
+}
+
+/* Optional: style the scroll bar */
+#chatArea .scroll-bar:vertical {
+    -fx-background-color: #0a2540;
+}
+
+#chatArea .scroll-bar .thumb {
+    -fx-background-color: #1e5aa8; /* lighter blue */
+    -fx-background-radius: 4;
+}

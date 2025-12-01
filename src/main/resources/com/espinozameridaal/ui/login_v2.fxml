@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.geometry.Pos?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.espinozameridaal.ui.LoginController_V2"
+            styleClass="root">
+
+    <center>
+        <HBox alignment="CENTER" spacing="40.0">
+            <children>
+                <!-- Left side: branding -->
+                <VBox alignment="CENTER_LEFT" spacing="16.0">
+                    <children>
+                        <StackPane styleClass="logo-circle">
+                            <children>
+                                <Label text="💬" styleClass="logo-emoji"/>
+                            </children>
+                        </StackPane>
+                        <Label text="DashChat" styleClass="app-title"/>
+                        <Label text="Fast, secure, and clean messaging UI."
+                               styleClass="app-subtitle"/>
+                    </children>
+                </VBox>
+
+                <!-- Right side: login card -->
+                <VBox alignment="CENTER" spacing="16.0" styleClass="login-card">
+                    <children>
+                        <VBox alignment="CENTER_LEFT" spacing="4.0">
+                            <children>
+                                <Label text="Welcome back" styleClass="card-title"/>
+                                <Label text="Sign in to continue to your workspace"
+                                       styleClass="card-subtitle"/>
+                            </children>
+                        </VBox>
+
+                        <VBox spacing="8.0" alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="Username" styleClass="field-label"/>
+                                <TextField fx:id="usernameField"
+                                           promptText="Enter your username"
+                                           styleClass="text-input"/>
+                            </children>
+                        </VBox>
+
+                        <VBox spacing="8.0" alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="Password" styleClass="field-label"/>
+                                <PasswordField fx:id="passwordField"
+                                               promptText="Enter your password"
+                                               styleClass="text-input"/>
+                            </children>
+                        </VBox>
+
+                        <Label fx:id="errorLabel"
+                               text="Invalid username or password"
+                               styleClass="error-label"/>
+
+                        <Button text="Sign in"
+                                onAction="#handleLogin"
+                                styleClass="primary-button"
+                                maxWidth="Infinity"/>
+
+                        <VBox spacing="4.0" styleClass="demo-box">
+                            <children>
+                                <Label text="Demo accounts" styleClass="demo-title"/>
+                                <Label text="• alex / password"
+                                       styleClass="demo-line"/>
+                                <Label text="• sarah / password"
+                                       styleClass="demo-line"/>
+                            </children>
+                        </VBox>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+    </center>
+</BorderPane>
