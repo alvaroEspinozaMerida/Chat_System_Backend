@@ -101,4 +101,14 @@
         </BorderPane>
     </center>
 
+
+   <right>
+      <VBox prefHeight="200.0" prefWidth="150.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label fx:id="rttLabel" style="-fx-font-weight: bold;" styleClass="chat-title" text="RTT (Latest): 42 ms" />
+            <Label fx:id="avgRttLabel" layoutX="10.0" layoutY="10.0" style="-fx-font-weight: bold;" styleClass="chat-title" text="RTT (Average): 55 ms" />
+         </children>
+      </VBox>
+   </right>
+
 </BorderPane>

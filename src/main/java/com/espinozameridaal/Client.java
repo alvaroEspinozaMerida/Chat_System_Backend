@@ -105,11 +105,6 @@ public class Client {
             String payload = "MSG|" + seq + "|" + ts + "|" + chatPayload;
 
 
-
-//            String payload = "ID <" + user.userID + "> :" + user.userName + ": " + message;
-//            String payload = "ID <" + user.userID + "> :" + user.userName + ": " + message;
-
-
             writer.write(payload);
             writer.newLine();
             writer.flush();
@@ -147,12 +142,14 @@ public class Client {
                             long sendTs = Long.parseLong(parts[2]);
                             String chatPayload = parts[3];
 
+//                            JAVAFX display
                             listener.onMessageReceived(chatPayload);
 
-                            // (Optional) if you want end-to-end client↔client RTT:
+                            // (Optional) end-to-end client↔client RTT:
                             // sendAck(seq);  // this ACK will go back through the server
 
                         } else if ("ACK".equals(type)) {
+//                            ACK FROM SERVER
                             int seq = Integer.parseInt(parts[1]);
                             handleAck(seq);
 
@@ -178,21 +175,20 @@ public class Client {
         Long sendTs = pendingRtt.remove(seq);
         if (sendTs == null) return;
 
+//        MOST RECENT RTT
         long now = System.nanoTime();
         long rtt = now - sendTs;
         stats.recordRtt(rtt);
 
-        System.out.printf("RTT for seq %d = %.3f ms%n", seq, rtt / 1_000_000.0);
-        System.out.printf("Avg RTT = %.3f ms, throughput = %.3f Mbps%n",
-                stats.avgRttMillis(),
-                stats.throughputMbps(startTimeMillis));
+
+
+//        DISPLAY THIS ON JAVAFX
+//        average RTT
+//        System.out.printf("RTT for seq %d = %.3f ms%n", seq, rtt / 1_000_000.0);
+//        System.out.printf("Avg RTT = %.3f ms, throughput = %.3f Mbps%n",
+//                stats.avgRttMillis(),
+//                stats.throughputMbps(startTimeMillis));
     }
-
-
-
-
-
-
 
 
     public void closeClient(Socket socket, BufferedReader in, BufferedWriter out) {

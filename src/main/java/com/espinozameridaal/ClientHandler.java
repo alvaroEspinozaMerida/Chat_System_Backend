@@ -145,6 +145,7 @@ public class ClientHandler implements Runnable {
 //        TODO UPDATE PARSER TO  PARSE OUT based on new formatting
 
         ParsedMessage parsed = MessageParser.parse(message);
+
         if (parsed == null) {
             System.out.println("Could not parse message: " + message);
             return;
@@ -160,60 +161,31 @@ public class ClientHandler implements Runnable {
                     if (!clientHandler.clientUsername.equals(this.clientUsername)
                             && Objects.equals(parsed.userName, clientHandler.clientUsername)) {
 
+                        if ("MSG".equals(parsed.type)) {
+                            int seq = parsed.seq;
+                            long ts = parsed.sendTs;
 
-
-                        if ("MSG".equals(type)) {
-                            int seq = Integer.parseInt(parts[1]);
-                            long ts = Long.parseLong(parts[2]);
-                            String chatPayload = parts[3];
-
-                            // figure out who this message is for:
-                            // e.g., parse chatPayload "ID <targetId> :targetName: message"
-                            // then lookup the target ClientHandler
-
-                            ClientHandler target = findTargetFromChatPayload(chatPayload);
-
-                            if (target != null) {
-                                // forward same line (preserve seq + ts for RTT)
-                                target.sendRaw(line);
+                            try {
+                                messageDao.saveMessage(this.clientUserId, clientHandler.clientUserId, parsed.message);
+                            } catch (SQLException e) {
+                                e.printStackTrace();
                             }
 
-                            // If you want client↔server RTT (simpler):
-                            // send ACK back immediately to THIS client
+                            clientHandler.writer.write(this.clientUsername + ": " + parsed.message);
+                            clientHandler.writer.newLine();
+                            clientHandler.writer.flush();
+//                            sending back ACK back to the original sender
                             sendRaw("ACK|" + seq);
 
-                        } else if ("ACK".equals(type)) {
-                            // Optional: if you implement full client↔client RTT
-                            // you can route this ACK to the original sender
-                            // (You’d need to encode origin userID in the ACK)
+
                         }
 
+//                        else if ("ACK".equals(parsed.type)) {
+//                            // Optional:  full client↔client RTT
+//                            // route this ACK to the original sender
+//
+//                        }
 
-
-
-
-
-
-
-                        // 1) Save to DB
-                        try {
-                            messageDao.saveMessage(this.clientUserId, clientHandler.clientUserId, parsed.message);
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-
-
-
-
-
-
-
-
-
-                        // 2) Deliver to receiver
-                        clientHandler.writer.write(this.clientUsername + ": " + parsed.message);
-                        clientHandler.writer.newLine();
-                        clientHandler.writer.flush();
                     }
                 } catch (IOException e) {
                     closeClientHandler(socket, reader, writer);
@@ -221,6 +193,14 @@ public class ClientHandler implements Runnable {
             }
         }
     }
+
+
+    public void sendRaw(String line) throws IOException {
+        this.writer.write(line);
+        this.writer.newLine();
+        this.writer.flush();
+    }
+
 
     private void sendTextLine(String message) {
         try {
