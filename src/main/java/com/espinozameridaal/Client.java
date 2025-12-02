@@ -6,11 +6,10 @@ import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sound.sampled.*;
 
@@ -92,14 +91,32 @@ public class Client {
             closeClient(socket, reader, writer);
         }
     }
+//    TODO: update message sender to use have extra information to payload for performence
 
     public void sendToUser(User user, String message) {
 
         try {
-            String payload = "ID <" + user.userID + "> :" + user.userName + ": " + message;
+
+
+            int seq = seqGen.incrementAndGet();
+            long ts = System.nanoTime();
+
+            String chatPayload = "ID <" + user.userID + "> :" + user.userName + ": " + message;
+            String payload = "MSG|" + seq + "|" + ts + "|" + chatPayload;
+
+
+
+//            String payload = "ID <" + user.userID + "> :" + user.userName + ": " + message;
+//            String payload = "ID <" + user.userID + "> :" + user.userName + ": " + message;
+
+
             writer.write(payload);
             writer.newLine();
             writer.flush();
+
+            pendingRtt.put(seq, ts);
+            stats.recordSend(payload.length() + System.lineSeparator().length());
+
 
         } catch (IOException e) {
             // Handle gracefully (server disconnected, etc.)
@@ -117,7 +134,34 @@ public class Client {
                         listener.onMessageReceived(line);
                     } else {
                         // Regular incoming messages
-                        listener.onMessageReceived(line);
+
+                        stats.recordReceive(line.length() + System.lineSeparator().length());
+
+                        String[] parts = line.split("\\|", 4);
+                        String type = parts[0];
+
+
+                        if ("MSG".equals(type)) {
+                            // parts: 0=MSG, 1=seq, 2=sendTs, 3=chatPayload
+                            int seq = Integer.parseInt(parts[1]);
+                            long sendTs = Long.parseLong(parts[2]);
+                            String chatPayload = parts[3];
+
+                            listener.onMessageReceived(chatPayload);
+
+                            // (Optional) if you want end-to-end client↔client RTT:
+                            // sendAck(seq);  // this ACK will go back through the server
+
+                        } else if ("ACK".equals(type)) {
+                            int seq = Integer.parseInt(parts[1]);
+                            handleAck(seq);
+
+                        } else {
+                            // fall back: maybe old format lines, or server system messages
+                            listener.onMessageReceived(line);
+                        }
+
+//                        listener.onMessageReceived(line);
                     }
                 }
             } catch (IOException e) {
@@ -128,6 +172,28 @@ public class Client {
         });
 
     }
+
+//    TODO CONNECT TO JAVAFX
+    private void handleAck(int seq) {
+        Long sendTs = pendingRtt.remove(seq);
+        if (sendTs == null) return;
+
+        long now = System.nanoTime();
+        long rtt = now - sendTs;
+        stats.recordRtt(rtt);
+
+        System.out.printf("RTT for seq %d = %.3f ms%n", seq, rtt / 1_000_000.0);
+        System.out.printf("Avg RTT = %.3f ms, throughput = %.3f Mbps%n",
+                stats.avgRttMillis(),
+                stats.throughputMbps(startTimeMillis));
+    }
+
+
+
+
+
+
+
 
     public void closeClient(Socket socket, BufferedReader in, BufferedWriter out) {
         // ensure we stop any running voice call
@@ -330,341 +396,47 @@ public class Client {
         }
     }
 
-    // === Existing stuff ===
+//======================================Stats Static Class ======================================
 
-//    --------------------------------OLD CLI VERSION--------------------------------------
-    public void displayMenu() {
-        System.out.println("Menu");
-        System.out.println("1. Show Friends");
-        System.out.println("2. Friend Requests");
-        System.out.println("3. Add Friend");
-        System.out.println("4. Message Friend");
-        System.out.println("5. Settings");
-        System.out.println("6. Start Voice Call");
-        System.out.println("7. Stop Voice Call");
-        System.out.println("0. Exit");
-    }
+    private final AtomicInteger seqGen = new AtomicInteger(0);
+    private final Map<Integer, Long> pendingRtt = new ConcurrentHashMap<>();
 
+    private final Stats stats = new Stats();
+    private final long startTimeMillis = System.currentTimeMillis();
 
+    static class Stats {
+        long totalSentBytes = 0;
+        long totalReceivedBytes = 0;
 
-    // RUNs off main thread; builds off the send message function
-    public void mainMenu() {
+        long totalRttNanos = 0;
+        long rttSamples = 0;
 
-        try {
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("CONNECTION ESTABLISHED");
-            while (socket.isConnected()) {
-                displayMenu();
-                System.out.print("Enter choice: ");
-                String choiceLine = scanner.nextLine().trim();
-                if (choiceLine.isBlank()) {
-                    System.out.println("Invalid choice! Please enter a number between 0 and 7.");
-                    continue;
-                }
+        synchronized void recordSend(int bytes) {
+            totalSentBytes += bytes;
+        }
 
-                int choice;
-                try {
-                    choice = Integer.parseInt(choiceLine);
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid choice! Please enter a number between 0 and 7.");
-                    continue;
-                }
+        synchronized void recordReceive(int bytes) {
+            totalReceivedBytes += bytes;
+        }
 
-                if (choice < 0 || choice > 7) {
-                    System.out.println("Invalid choice! Please enter a number between 0 and 7.");
-                    continue;
-                }
+        synchronized void recordRtt(long rttNanos) {
+            totalRttNanos += rttNanos;
+            rttSamples++;
+        }
 
-                switch (choice) {
-                    case 1 -> {
-                        try {
-                            user.friends = new ArrayList<>(userDao.getFriends(user.userID));
-                        } catch (SQLException e) {
-                            System.out.println("Error loading friends.");
-                            e.printStackTrace();
-                            break;
-                        }
+        synchronized double avgRttMillis() {
+            if (rttSamples == 0) return 0.0;
+            return (totalRttNanos / (double) rttSamples) / 1_000_000.0;
+        }
 
-                        System.out.println("--------------------------------");
-                        System.out.println(user.userName + "'s friends:");
-                        if (user.friends.isEmpty()) {
-                            System.out.println("(no friends yet)");
-                        } else {
-                            for (User f : user.friends) {
-                                System.out.println(" - " + f.userName + " (id " + f.userID + ")");
-                            }
-                        }
-                        System.out.println("--------------------------------");
-                    }
-
-                    case 2 -> {
-                        // Friend Requests: view and accept/decline
-                        System.out.println("Friend Requests");
-                        System.out.println("Pending friend requests:");
-                        java.util.List<FriendRequest> pending;
-                        try {
-                            pending = friendRequestDao.getIncomingPending(user.userID);
-                        } catch (SQLException e) {
-                            System.out.println("Error loading friend requests.");
-                            e.printStackTrace();
-                            break;
-                        }
-
-                        if (pending.isEmpty()) {
-                            System.out.println("No pending friend requests.");
-                            break;
-                        }
-
-                        for (FriendRequest fr : pending) {
-                            System.out.println("From userId=" + fr.getSenderId() + " (requestId=" + fr.getId() + ")");
-                        }
-
-                        System.out.println("Enter 'a <senderUserId>' to accept, 'd <senderUserId>' to decline, or 'b' to go back:");
-                        String cmd = scanner.nextLine().trim();
-                        if (cmd.equalsIgnoreCase("b")) {
-                            break;
-                        }
-
-                        if (cmd.startsWith("a ")) {
-                            String idPart = cmd.substring(2).trim();
-                            try {
-                                long senderUserId = Long.parseLong(idPart);
-
-                                FriendRequest target = null;
-                                for (FriendRequest fr : pending) {
-                                    if (fr.getSenderId() == senderUserId) {
-                                        target = fr;
-                                        break;
-                                    }
-                                }
-
-                                if (target == null) {
-                                    System.out.println("Request not found.");
-                                    break;
-                                }
-
-                                long reqId = target.getId();
-
-                                if (friendRequestDao.accept(reqId)) {
-
-                                    userDao.addFriendship(user.userID, target.getSenderId());
-                                    user.friends = new ArrayList<>(userDao.getFriends(user.userID));
-                                    System.out.println("Friend request accepted.");
-                                } else {
-                                    System.out.println("Could not accept request.");
-                                }
-                            } catch (Exception e) {
-                                System.out.println("Invalid sender user id or DB error.");
-                            }
-                        } else if (cmd.startsWith("d ")) {
-                            String idPart = cmd.substring(2).trim();
-                            try {
-                                long senderUserId = Long.parseLong(idPart);
-                                FriendRequest target = null;
-
-                                for (FriendRequest fr : pending) {
-                                    if (fr.getSenderId() == senderUserId) {
-                                        target = fr;
-                                        break;
-                                    }
-                                }
-
-                                if (target == null) {
-                                    System.out.println("Request not found.");
-                                    break;
-                                }
-
-                                long reqId = target.getId();
-
-                                if (friendRequestDao.decline(reqId)) {
-                                    System.out.println("Friend request declined.");
-                                } else {
-                                    System.out.println("Could not decline request.");
-                                }
-                            } catch (Exception e) {
-                                System.out.println("Invalid sender user id or DB error.");
-                            }
-                        } else {
-                            System.out.println("Unknown command.");
-                        }
-                    }
-
-                    case 3 -> {
-                        // Add Friend (sends friend request)
-                        System.out.println("Add Friend");
-                        System.out.print("Enter friend's username: ");
-                        String friendName = scanner.nextLine().trim();
-                        if (friendName.isBlank()) {
-                            System.out.println("Friend name cannot be empty.");
-                            break;
-                        }
-                        if (friendName.equals(user.userName)) {
-                            System.out.println("You cannot add yourself as a friend.");
-                            break;
-                        }
-                        try {
-                            User friend = userDao.findByUsername(friendName);
-                            if (friend == null) {
-                                System.out.println("User does not exist. Cannot send request.");
-                                break;
-                            }
-
-                            boolean ok = friendRequestDao.createRequest(user.userID, friend.userID);
-                            if (ok) {
-                                System.out.println("Friend request sent to " + friend.userName + ".");
-                            } else {
-                                System.out.println("A pending request already exists or cannot send request.");
-                            }
-                        } catch (SQLException e) {
-                            System.out.println("Failed to send friend request.");
-                            e.printStackTrace();
-                        }
-                    }
-
-                    case 4 -> {
-                        // Message Friend (show history + chat)
-                        System.out.println("Which friend do you want to message?");
-                        System.out.println("Enter their ID (enter -1 to go back): ");
-                        String idLine = scanner.nextLine().trim();
-                        int userID;
-                        try {
-                            userID = Integer.parseInt(idLine);
-                        } catch (NumberFormatException e) {
-                            System.out.println("Invalid ID. Returning to menu.");
-                            break;
-                        }
-                        if (userID == -1) {
-                            System.out.println("Returning to menu.");
-                            break;
-                        }
-                        User found = User.getUserById(userID, this.user.friends);
-                        if (found == null) {
-                            System.out.println("User not found in your friends list.");
-                            break;
-                        }
-
-                        // Show message history
-                        try {
-                            java.util.List<Message> history = messageDao.getConversation(user.userID, found.userID);
-                            System.out.println("----- Conversation with " + found.userName + " -----");
-                            if (history.isEmpty()) {
-                                System.out.println("No previous messages.");
-                            } else {
-                                for (Message m : history) {
-                                    String who = (m.senderId == user.userID) ? "You" : found.userName;
-                                    System.out.println("[" + m.createdAt + "] " + who + ": " + m.content);
-                                }
-                            }
-                            System.out.println("--------------------------------------");
-                        } catch (SQLException e) {
-                            System.out.println("Could not load message history.");
-                            e.printStackTrace();
-                        }
-
-                        String message = "";
-                        while (!Objects.equals(message, "-1")) {
-                            System.out.println("Sending messages to (" + found.userName + "): ");
-                            message = scanner.nextLine();
-                            if (message.isBlank()) continue;
-                            if (Objects.equals(message, "-1")) break;
-
-                            writer.write("ID <" + found.userID + "> :" + found.userName + ": " + message);
-                            writer.newLine();
-                            writer.flush();
-                        }
-                    }
-
-                    case 5 -> {
-                        // Settings (optional)
-                        System.out.println("Settings");
-                        System.out.println("(-- Future Features --)");
-                    }
-
-                    case 6 -> {
-                        // Start Voice Call
-                        System.out.println("Which friend do you want to start a voice call with?");
-                        System.out.print("Enter their ID (enter -1 to go back): ");
-                        String idLine = scanner.nextLine().trim();
-                        int userID;
-                        try {
-                            userID = Integer.parseInt(idLine);
-                        } catch (NumberFormatException e) {
-                            System.out.println("Invalid ID. Returning to menu.");
-                            break;
-                        }
-                        if (userID == -1) {
-                            System.out.println("Returning to menu.");
-                            break;
-                        }
-                        User found = User.getUserById(userID, this.user.friends);
-                        if (found == null) {
-                            System.out.println("User not found in your friends list.");
-                            break;
-                        }
-                        startVoiceCall(found);
-                    }
-
-                    case 7 -> {
-                        // Stop Voice Call
-                        stopVoiceCall();
-                    }
-
-                    case 0 -> {
-                        System.out.println("Exit");
-                        stopVoiceCall();
-                        System.exit(0);
-                    }
-
-                    default -> System.out.println("Invalid choice.");
-                }
-
-            }
-        } catch (IOException e) {
-            closeClient(socket, reader, writer);
+        synchronized double throughputMbps(long startTimeMillis) {
+            long now = System.currentTimeMillis();
+            double seconds = (now - startTimeMillis) / 1000.0;
+            if (seconds <= 0) return 0.0;
+            double bits = totalReceivedBytes * 8.0;
+            return (bits / seconds) / 1_000_000.0;
         }
     }
-//    --------------------------------OLD CLI VERSION--------------------------------------
 
-
-
-
-
-
-//    public static void main(String[] args) {
-//
-//        int port = 1234;
-//        Scanner scanner = new Scanner(System.in);
-//        UserDao userDao = new UserDao();          // DB instead of alice and rest of them list
-//        User currentUser;
-//
-//        System.out.println("Enter username you’d like to use: ");
-//        String username = scanner.nextLine().trim();
-//
-//        try {
-//            // find or create user in H2 database
-//            currentUser = userDao.findOrCreateByUsername(username);
-//
-//            // loads existing friends from DB into the in memory list
-//            currentUser.friends = new ArrayList<>(userDao.getFriends(currentUser.userID));
-//
-//            System.out.println("Found / created user: " + currentUser.userName +
-//                    " (id " + currentUser.userID + ")");
-//        } catch (SQLException e) {
-//            System.out.println("Failed to connect to database. Exiting.");
-//            e.printStackTrace();
-//            return;
-//        }
-//
-//        try {
-//            Socket socket = new Socket("localhost", port);
-//            Client client = new Client(socket, currentUser, userDao);
-//
-//            client.listenForMessage();
-//            client.mainMenu();
-//        } catch (IOException e) {
-//            System.out.println("Could not connect to server on port " + port);
-//            e.printStackTrace();
-//        }
-//    }
 
 }

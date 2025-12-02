@@ -142,6 +142,7 @@ public class ClientHandler implements Runnable {
         if (message == null || message.isBlank()) {
             return;
         }
+//        TODO UPDATE PARSER TO  PARSE OUT based on new formatting
 
         ParsedMessage parsed = MessageParser.parse(message);
         if (parsed == null) {
@@ -158,12 +159,56 @@ public class ClientHandler implements Runnable {
                 try {
                     if (!clientHandler.clientUsername.equals(this.clientUsername)
                             && Objects.equals(parsed.userName, clientHandler.clientUsername)) {
+
+
+
+                        if ("MSG".equals(type)) {
+                            int seq = Integer.parseInt(parts[1]);
+                            long ts = Long.parseLong(parts[2]);
+                            String chatPayload = parts[3];
+
+                            // figure out who this message is for:
+                            // e.g., parse chatPayload "ID <targetId> :targetName: message"
+                            // then lookup the target ClientHandler
+
+                            ClientHandler target = findTargetFromChatPayload(chatPayload);
+
+                            if (target != null) {
+                                // forward same line (preserve seq + ts for RTT)
+                                target.sendRaw(line);
+                            }
+
+                            // If you want client↔server RTT (simpler):
+                            // send ACK back immediately to THIS client
+                            sendRaw("ACK|" + seq);
+
+                        } else if ("ACK".equals(type)) {
+                            // Optional: if you implement full client↔client RTT
+                            // you can route this ACK to the original sender
+                            // (You’d need to encode origin userID in the ACK)
+                        }
+
+
+
+
+
+
+
+
                         // 1) Save to DB
                         try {
                             messageDao.saveMessage(this.clientUserId, clientHandler.clientUserId, parsed.message);
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
+
+
+
+
+
+
+
+
 
                         // 2) Deliver to receiver
                         clientHandler.writer.write(this.clientUsername + ": " + parsed.message);
