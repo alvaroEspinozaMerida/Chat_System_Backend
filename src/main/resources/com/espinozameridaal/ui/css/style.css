@@ -12,6 +12,11 @@
 
 }
 
+.performance-box {
+    -fx-spacing: 150;
+}
+
+
 .logo-circle, .logo-circle-small {
     -fx-background-color: #3b82f6;
     -fx-background-radius: 999;
@@ -174,6 +179,13 @@
 .chat-title {
     -fx-text-fill: #f9fafb;
     -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+
+.performance-title{
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 12px;
     -fx-font-weight: bold;
 }
 
