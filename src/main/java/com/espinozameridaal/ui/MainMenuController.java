@@ -46,6 +46,13 @@ public class MainMenuController {
     private TextField messageField;
 
 
+//    Performence Metrics Data
+    @FXML
+    private Label rttLabel;
+    @FXML
+    private Label avgRttLabel;
+
+
 //  Friend who you currently chatting with
     private User currentFriend;
 //    Connection to Client , Client represents Socket Connections to Server ; each GUI get's one Client
@@ -403,6 +410,10 @@ public class MainMenuController {
         messageField.clear();
         client.sendToUser(friend, text);
         chatArea.appendText("[now] You: " + text + "\n");
+
+
+
+
     }
 
 
