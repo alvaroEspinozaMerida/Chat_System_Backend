@@ -19,6 +19,7 @@ import com.espinozameridaal.Models.FriendRequest;
 import com.espinozameridaal.Models.Message;
 import com.espinozameridaal.Database.FriendRequestDao;
 import com.espinozameridaal.Database.MessageDao;
+import lombok.Setter;
 
 public class Client {
 
@@ -38,6 +39,11 @@ public class Client {
     private DatagramSocket voiceSocket;
     private Thread voiceCaptureThread;
     private Thread voiceReceiveThread;
+
+    @Setter
+    private StatsListener statsListener;
+
+
 
     public Client(Socket socket, User user, UserDao userDao) {
         try {
@@ -60,6 +66,7 @@ public class Client {
         }
     }
 
+
     public User getUser() {
         return user;
     }
@@ -75,6 +82,9 @@ public class Client {
     public MessageDao getMessageDao() {
         return messageDao;
     }
+
+
+
 
 //sending message in CLI : main difference is GUI does not run off loop
     public void sendMessage() {
@@ -180,14 +190,15 @@ public class Client {
         long rtt = now - sendTs;
         stats.recordRtt(rtt);
 
+        double lastRttMs   = rtt / 1_000_000.0;
+        double avgRttMs    = stats.avgRttMillis();
 
+        double throughput  = stats.throughputMbps(startTimeMillis);
 
-//        DISPLAY THIS ON JAVAFX
-//        average RTT
-//        System.out.printf("RTT for seq %d = %.3f ms%n", seq, rtt / 1_000_000.0);
-//        System.out.printf("Avg RTT = %.3f ms, throughput = %.3f Mbps%n",
-//                stats.avgRttMillis(),
-//                stats.throughputMbps(startTimeMillis));
+//        Change in the performance stats, notification to the listener is sent out
+        if (statsListener != null) {
+            statsListener.onStatsUpdated(lastRttMs, avgRttMs, throughput);
+        }
     }
 
 
@@ -413,6 +424,7 @@ public class Client {
 
         synchronized void recordReceive(int bytes) {
             totalReceivedBytes += bytes;
+            System.out.println("TOTAL RECEIVED BYTES: " + totalReceivedBytes);
         }
 
         synchronized void recordRtt(long rttNanos) {
@@ -430,7 +442,9 @@ public class Client {
             double seconds = (now - startTimeMillis) / 1000.0;
             if (seconds <= 0) return 0.0;
             double bits = totalReceivedBytes * 8.0;
-            return (bits / seconds) / 1_000_000.0;
+            return bits/seconds;
+//            System.out.println("throughput bits: " + bits);
+//            return (bits / seconds) / 1_000_000.0;
         }
     }
 

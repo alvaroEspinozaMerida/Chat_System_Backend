@@ -51,7 +51,8 @@ public class MainMenuController {
     private Label rttLabel;
     @FXML
     private Label avgRttLabel;
-
+    @FXML
+    private Label throughputLabel;
 
 //  Friend who you currently chatting with
     private User currentFriend;
@@ -81,6 +82,16 @@ public class MainMenuController {
         createFriendsView();
         createFriendRequestView();
 
+        client.setStatsListener(
+                (lastRttMs, avgRttMs, throughputMbps) ->
+                {
+                    javafx.application.Platform.runLater(() -> {
+                        rttLabel.setText(String.format(" RTT(Latest): %.1f ms",lastRttMs));
+                        avgRttLabel.setText(String.format(" RTT(Average): %.1f ms",lastRttMs));
+                        throughputLabel.setText(String.format(" Throughput: %.1f bps",throughputMbps));
+                    });
+                }
+        );
         client.listenForMessage(line ->
                 Platform.runLater(() -> chatArea.appendText(line + "\n"))
         );
@@ -410,9 +421,6 @@ public class MainMenuController {
         messageField.clear();
         client.sendToUser(friend, text);
         chatArea.appendText("[now] You: " + text + "\n");
-
-
-
 
     }
 
