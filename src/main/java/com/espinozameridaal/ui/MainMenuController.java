@@ -240,7 +240,7 @@ public class MainMenuController {
         // numeric text only
         rttLabel.setText(String.format("%.1f ms", lastRttMs));
         avgRttLabel.setText(String.format("%.1f ms", avgRttMs));
-        throughputLabel.setText(String.format("%.1f Mbps", throughputMbps));
+        throughputLabel.setText(String.format("%.1f bps", throughputMbps));
 
         // decide colors
         String latestColor      = colorForRtt(lastRttMs);
