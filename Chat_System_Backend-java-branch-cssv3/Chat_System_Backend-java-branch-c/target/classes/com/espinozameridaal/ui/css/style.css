@@ -1,0 +1,515 @@
+/*************************************************************
+*  GLOBAL SETTINGS
+************************************************************/
+* {
+    -fx-font-smoothing-type: gray;
+}
+
+.root {
+    -fx-background-color: #020617;   /* Deep navy/black background */
+    -fx-font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    -fx-text-fill: #e5e7eb;
+}
+
+
+/************************************************************
+ *  TOP BAR AREA
+ ************************************************************/
+.top-bar {
+    -fx-padding: 10 16;
+    -fx-background-color: #020617;
+
+    /* Cool gradient underline */
+    -fx-border-color: linear-gradient(to right, #3b82f6, #1e2937, #3b82f6);
+    -fx-border-width: 0 0 2 0;
+}
+
+
+/************************************************************
+ *  LOGO / BRANDING ELEMENTS
+ ************************************************************/
+.logo-circle,
+.logo-circle-small {
+    -fx-background-color: #3b82f6; /* Accent Blue */
+    -fx-background-radius: 999;    /* Full circle */
+}
+
+.logo-circle { -fx-padding: 16; }
+.logo-circle-small { -fx-padding: 8; }
+
+.logo-emoji { -fx-font-size: 32px; }
+.logo-emoji-small { -fx-font-size: 16px; }
+
+
+/************************************************************
+ *  TITLES
+ ************************************************************/
+.app-title {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.app-subtitle {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 13px;
+}
+
+
+/************************************************************
+ *  LOGIN CARD
+ ************************************************************/
+.login-card {
+    -fx-padding: 24;
+    -fx-background-color: rgba(2, 6, 23, 0.65);
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-border-color: #1f2937;
+
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.75), 30, 0.25, 0, 12);
+}
+
+.card-title {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.card-subtitle {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 12px;
+}
+
+.field-label {
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 11px;
+}
+
+
+/************************************************************
+ *  TEXT INPUT FIELDS
+ ************************************************************/
+.text-input {
+    -fx-background-color: #020617;
+    -fx-text-fill: #e5e7eb;
+
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #1f2937;
+    -fx-padding: 8 10;
+}
+
+.text-input:focused {
+    -fx-border-color: #3b82f6;
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.55), 18, 0.3, 0, 0);
+}
+
+
+/************************************************************
+ *  PRIMARY BUTTON (LOGIN, SEND, ETC.)
+ ************************************************************/
+.primary-button {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+
+    -fx-padding: 8 16;
+    -fx-font-weight: bold;
+
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.35), 10, 0.2, 0, 0);
+}
+
+.primary-button:hover {
+    -fx-background-color: #2563eb;
+    -fx-translate-y: -2;
+
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.65), 18, 0.3, 0, 0);
+}
+
+.primary-button:pressed {
+    -fx-background-color: #1e40af;
+    -fx-translate-y: 0;
+
+    -fx-effect: dropshadow(gaussian, rgba(37,99,235,0.45), 6, 0.2, 0, 0);
+}
+
+
+/************************************************************
+ *  ERROR LABELS
+ ************************************************************/
+.error-label {
+    -fx-text-fill: #f97373;
+    -fx-font-size: 11px;
+}
+
+
+/************************************************************
+ *  DEMO BOXES (STAT PANELS)
+ ************************************************************/
+.demo-box {
+    -fx-padding: 8 10;
+    -fx-background-color: rgba(2,6,23,0.4);
+    -fx-background-radius: 10;
+    -fx-border-color: #1f2937;
+    -fx-border-radius: 10;
+}
+
+.demo-title {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.demo-line {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 11px;
+}
+
+
+/************************************************************
+ *  SIDEBAR AREA
+ ************************************************************/
+.sidebar {
+    -fx-background-color: rgba(2, 6, 23, 0.65);
+    -fx-padding: 10;
+    -fx-pref-width: 260;
+
+    -fx-border-color: #0f172a;
+    -fx-border-width: 0 1 0 0;
+}
+
+.sidebar:hover {
+    -fx-border-color: linear-gradient(to bottom, #3b82f6, transparent);
+}
+
+
+/************************************************************
+ *  SEARCH INPUT
+ ************************************************************/
+.search-input {
+    -fx-background-color: #020617;
+    -fx-text-fill: #e5e7eb;
+
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-color: #1f2937;
+
+    -fx-padding: 6 12;
+}
+
+.search-input:focused {
+    -fx-border-color: #3b82f6;
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.5), 16, 0.25, 0, 0);
+}
+
+
+/************************************************************
+ *  CHAT HEADER BAR
+ ************************************************************/
+.chat-header {
+    -fx-padding: 10 14;
+    -fx-background-color: rgba(2,6,23,0.55);
+
+    -fx-border-color: #0f172a;
+    -fx-border-width: 0 0 1 0;
+}
+
+
+/************************************************************
+ *  AVATAR CIRCLES
+ ************************************************************/
+.avatar-circle {
+    -fx-background-color: #3b82f6;
+    -fx-background-radius: 999;
+    -fx-padding: 10;
+}
+
+.avatar-circle:hover {
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.55), 25, 0.45, 0, 0);
+    -fx-translate-y: -2;
+}
+
+.avatar-text {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+
+/************************************************************
+ *  CHAT TITLES
+ ************************************************************/
+.chat-title {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.chat-subtitle {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 11px;
+}
+
+
+/************************************************************
+ *  CHAT TEXT AREA
+ ************************************************************/
+#chatArea {
+    -fx-control-inner-background: #0a2540;
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;
+
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.30), 18, 0.2, 0, 0);
+}
+
+#chatArea:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.55), 22, 0.3, 0, 0);
+}
+
+
+/************************************************************
+ *  CHAT BUBBLES
+ ************************************************************/
+.message-bubble {
+    -fx-background-radius: 14;
+    -fx-padding: 8 12;
+    -fx-font-size: 13px;
+}
+
+.message-bubble.user {
+    -fx-background-color: #1e40af;
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.45), 16, 0.25, 0, 0);
+}
+
+.message-bubble.other {
+    -fx-background-color: #0a2540;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.55), 16, 0.25, 0, 0);
+}
+
+
+/************************************************************
+ *  MESSAGE BAR
+ ************************************************************/
+.message-bar {
+    -fx-padding: 10;
+    -fx-background-color: rgba(2,6,23,0.65);
+
+    -fx-border-color: #0f172a;
+    -fx-border-width: 1 0 0 0;
+}
+
+
+/************************************************************
+ *  ICON BUTTONS
+ ************************************************************/
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #9ca3af;
+
+    -fx-border-color: #1f2937;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
+
+    -fx-padding: 4 10;
+}
+
+.icon-button:pressed {
+    -fx-translate-y: 2;
+    -fx-opacity: 0.85;
+}
+
+
+/************************************************************
+ *  LIST VIEWS (FRIENDS / USERS)
+ ************************************************************/
+.list-style,
+#pendingRequestsList {
+    -fx-background-color: transparent;
+
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+
+    -fx-border-color: #1f2937;
+    -fx-border-width: 1;
+
+    -fx-padding: 4;
+}
+
+.list-style:focused,
+#pendingRequestsList:focused {
+    -fx-border-color: #3b82f6;
+}
+
+.list-style .list-cell,
+#pendingRequestsList .list-cell {
+    -fx-background-color: #0a2540;
+    -fx-background-radius: 10;
+    -fx-text-fill: white;
+}
+
+.list-style .list-cell:filled:hover,
+#pendingRequestsList .list-cell:filled:hover {
+    -fx-background-color: linear-gradient(to right, rgba(30,90,168,0.65), rgba(30,90,168,0.15));
+    -fx-translate-x: 6;
+}
+
+.list-style .list-cell:filled:selected,
+#pendingRequestsList .list-cell:filled:selected {
+    -fx-background-color: #1e5aa8;
+}
+
+
+/************************************************************
+ *  FRIEND BUTTONS
+ ************************************************************/
+.friend-btn {
+    -fx-background-color: #1e5aa8;
+    -fx-text-fill: white;
+
+    -fx-background-radius: 6;
+    -fx-font-size: 10px;
+}
+
+.friend-btn:hover {
+    -fx-background-color: #2b75c9;
+}
+
+.friend-btn:pressed {
+    -fx-background-color: #0f3968;
+}
+
+
+/************************************************************
+ *  CHARTS
+ ************************************************************/
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: #1f2937;
+}
+
+.default-color0.chart-series-line {
+    -fx-stroke: #3b82f6;
+    -fx-stroke-width: 1.5;
+}
+
+.default-color0.chart-line-symbol {
+    -fx-background-color: #3b82f6;
+}
+
+
+/************************************************************
+ *  CONTEXT MENU
+ ************************************************************/
+.context-menu.friend-context-menu {
+    -fx-background-color: #0a2540;
+    -fx-padding: 4;
+
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 18, 0.2, 0, 6);
+}
+
+.context-menu.friend-context-menu .menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 6 10;
+    -fx-background-radius: 8;
+}
+
+.context-menu.friend-context-menu .menu-item:focused {
+    -fx-background-color: #1e5aa8;
+}
+
+.context-menu.friend-context-menu .menu-item .label {
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 13px;
+}
+
+
+/************************************************************
+ *  🔥 UPGRADE PACK v1 — Frosted Blue Inner-Glow UI
+ ************************************************************/
+
+/* Frosted glass */
+.glass-panel {
+    -fx-background-color: rgba(255,255,255,0.06);
+    -fx-border-color: rgba(255,255,255,0.12);
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+}
+
+/* Inner glow */
+.inner-blue-glow {
+    -fx-effect: innershadow(gaussian, rgba(59,130,246,0.35), 20, 0.35, 0, 0);
+}
+
+/* 3D button look */
+.button-3d {
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 10;
+    -fx-background-color:
+            linear-gradient(to bottom, #3b82f6, #1e40af),
+            #1e3a8a;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.button-3d:pressed {
+    -fx-background-insets: 2, 0;
+}
+
+/* Soft text glow */
+.soft-text-glow {
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.55), 12, 0.30, 0, 0);
+}
+
+/* Animated border shift */
+.shift-border {
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-border-color: linear-gradient(to right, #1e40af, #3b82f6);
+}
+
+.shift-border:hover {
+    -fx-border-color: linear-gradient(to right, #3b82f6, #1e40af);
+}
+
+
+/************************************************************
+ *  🔥 GLOBAL GLOW (BASE AESTHETIC)
+ ************************************************************/
+
+.root,
+.login-card,
+.sidebar,
+.chat-header,
+.message-bar,
+#chatArea,
+.demo-box,
+.list-style,
+#pendingRequestsList {
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.35), 22, 0.25, 0, 0);
+}
+
+.primary-button,
+.avatar-circle,
+.logo-circle {
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.55), 25, 0.35, 0, 0);
+}
+
+.sidebar:hover,
+.login-card:hover,
+.chat-header:hover,
+.message-bar:hover,
+.list-style:hover,
+#pendingRequestsList:hover {
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.65), 28, 0.40, 0, 0);
+    -fx-translate-y: -1;
+}
