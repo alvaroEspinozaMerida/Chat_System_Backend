@@ -508,3 +508,105 @@
     -fx-font-weight: normal;
     -fx-font-size: 1em;
 }
+
+.list-style .virtual-flow {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-color: #0a2540;
+}
+
+.list-style .virtual-flow .clipped-container {
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-color: #0a2540;
+    -fx-padding: 0;
+}
+
+.list-style .virtual-flow .sheet {
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-color: #0a2540;
+}
+
+
+/* Base cell: no layered insets, use full-radius background */
+.list-style .list-cell {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;   /* stops clipping of the corners */
+}
+
+/* Selected state: same deal, but with your lighter blue */
+.list-style .list-cell:filled:selected,
+.list-style .list-cell:filled:selected:focused {
+    -fx-background-color: #1e5aa8;   /* your light blue */
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;
+}
+
+/* Optional: keep empty cells flat but matching the box */
+.list-style .list-cell:empty {
+    -fx-background-color: #0a2540;
+    -fx-background-radius: 10;
+    -fx-background-insets: 0;
+}
+
+/* === FINAL OVERRIDE FOR FRIENDS / USERS LIST === */
+
+/* Outer box draws the dark rounded background */
+.list-style {
+    -fx-background-color: #0a2540;      /* dark blue background of the box */
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #1f2937;
+    -fx-border-width: 1;
+    -fx-control-inner-background: transparent;  /* don't repaint inside */
+    -fx-padding: 4;
+}
+
+/* Internal containers: no extra solid background, keep radius for clipping */
+.list-style .virtual-flow,
+.list-style .virtual-flow .clipped-container,
+.list-style .virtual-flow .sheet {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Base cells transparent so the outer rounded background shows through */
+.list-style .list-cell,
+.list-style .list-cell:empty {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;
+}
+
+/* Hover: just color the cell */
+.list-style .list-cell:filled:hover {
+    -fx-background-color: #113a66;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Selected: pill with full rounding */
+.list-style .list-cell:filled:selected,
+.list-style .list-cell:filled:selected:focused {
+    -fx-background-color: #1e5aa8;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;
+}
+
+/* Prevent hover effects on empty rows */
+.list-style .list-cell:empty:hover {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;
+}
