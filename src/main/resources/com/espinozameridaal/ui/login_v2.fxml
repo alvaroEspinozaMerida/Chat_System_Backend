@@ -27,8 +27,8 @@
                                 <Label text="💬" styleClass="logo-emoji"/>
                             </children>
                         </StackPane>
-                        <Label text="DashChat" styleClass="app-title"/>
-                        <Label text="Fast, secure, and clean messaging UI."
+                        <Label text="TEMJAChat" styleClass="app-title"/>
+                        <Label text="TCP/UDP Messaging App (Group 7)"
                                styleClass="app-subtitle"/>
                     </children>
                 </VBox>
@@ -39,7 +39,7 @@
                         <VBox alignment="CENTER_LEFT" spacing="4.0">
                             <children>
                                 <Label text="Welcome back" styleClass="card-title"/>
-                                <Label text="Sign in to continue to your workspace"
+                                <Label text="Sign in to continue to your chat"
                                        styleClass="card-subtitle"/>
                             </children>
                         </VBox>

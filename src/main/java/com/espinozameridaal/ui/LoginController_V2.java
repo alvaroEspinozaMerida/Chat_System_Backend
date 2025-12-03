@@ -52,9 +52,10 @@ public class LoginController_V2 {
         UserDao userDao = new UserDao();
 
 
-        boolean ok = userDao.existsByUsername(username);
+        //boolean ok = userDao.existsByUsername(username);
         Client client = null;
 
+        /*
         if (!ok) {
             if (errorLabel != null) {
                 errorLabel.setText("Invalid username or password");
@@ -62,7 +63,7 @@ public class LoginController_V2 {
                 errorLabel.setManaged(true);
             }
             return;
-        }
+        }*/
 
         User currentUser;
 
@@ -122,7 +123,7 @@ public class LoginController_V2 {
             if (stage == null) {
                 stage = (Stage) usernameField.getScene().getWindow();
             }
-            stage.setTitle(" Chat - " + username);
+            stage.setTitle("Java TCP/UDP Chat (Group 7)");
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {

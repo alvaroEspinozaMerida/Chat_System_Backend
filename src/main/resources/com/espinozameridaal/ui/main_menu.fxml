@@ -9,12 +9,17 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
 
-<BorderPane stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.espinozameridaal.ui.MainMenuController">
-
+<?import javafx.scene.layout.Region?>
+<BorderPane fx:id="root" stylesheets="@css/style.css"
+            xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.espinozameridaal.ui.MainMenuController">
     <!-- Top bar -->
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="60" styleClass="top-bar">
+        <HBox alignment="CENTER_LEFT" spacing="20" HBox.hgrow="NEVER">
             <padding>
                 <Insets bottom="10" left="20" right="20" top="10" />
             </padding>
@@ -22,36 +27,54 @@
             <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" styleClass="chat-title" text="Java TCP Chat" />
 
             <HBox alignment="CENTER_LEFT" spacing="20">
-                <Label styleClass="chat-title" text="Logged in as:" />
-                <Label fx:id="currentUserLabel" style="-fx-font-weight: bold;" styleClass="chat-title" />
+                <Label fx:id="currentUserLabel"
+                       style="-fx-font-weight: bold;"
+                       styleClass="chat-title"
+                       text="Logged in as:" />
 
-                <Label fx:id="currentChat" style="-fx-font-weight: bold;" styleClass="chat-title" text="Chattting with :  " />
-
+                <Label fx:id="currentChat"
+                       style="-fx-font-weight: bold;"
+                       styleClass="chat-title"
+                       text="Chatting with: " />
             </HBox>
         </HBox>
     </top>
 
     <!-- Left: user selection -->
     <left>
-        <VBox prefWidth="200" spacing="12">
+        <VBox prefWidth="225" spacing="12">
             <padding>
                 <Insets bottom="10" left="10" right="10" top="10" />
             </padding>
 
             <!-- Section Title -->
             <HBox alignment="CENTER_LEFT" spacing="10">
-                <Label style="-fx-font-weight: bold;" styleClass="chat-title" text="Friends / Users" />
+                <Label style="-fx-font-weight: bold;"
+                       styleClass="chat-title"
+                       text="Friends / Users" />
+
+                <!-- Spacer that eats all remaining space -->
+                <Region HBox.hgrow="ALWAYS" />
 
                 <!-- Leave Call button, hidden by default -->
-                <Button fx:id="leaveCallButton" managed="false" onAction="#onLeaveCall" text="Leave call" visible="false" />
+                <Button fx:id="leaveCallButton"
+                        onAction="#onLeaveCall"
+                        text="Leave call"
+                        visible="false"
+                        styleClass="primary-button" />
             </HBox>
 
             <!-- Friends List -->
-            <ListView fx:id="friendListView" prefHeight="150" styleClass="list-style" VBox.vgrow="ALWAYS" />
+            <ListView fx:id="friendListView"
+                      styleClass="list-style"
+                      VBox.vgrow="ALWAYS" />
 
             <Label style="-fx-font-weight: bold;" styleClass="chat-title" text="Pending Friend Requests: " />
 
-            <ListView fx:id="pendingRequestsList" prefHeight="200" styleClass="list-style" />
+            <!-- Pending Friend Requests -->
+            <ListView fx:id="pendingRequestsList"
+                      styleClass="list-style"
+                      VBox.vgrow="ALWAYS" />
 
 
             <Label style="-fx-font-weight: bold;" styleClass="chat-title" text="Add Friend" />
@@ -102,28 +125,124 @@
     </center>
 
 
-   <right>
-       <VBox styleClass="performance-box"
-             prefHeight="200.0"
-             prefWidth="150.0"
-             BorderPane.alignment="CENTER"
-             >
+    <right>
+        <VBox styleClass="performance-box"
+              prefHeight="200.0"
+              prefWidth="225.0"
+              spacing="12"
+              BorderPane.alignment="CENTER">
+            <padding>
+                <Insets top="10" left="0" right="0" bottom="0" />
+            </padding>
 
-           <Label fx:id="rttLabel"
-                  style="-fx-font-weight: bold;"
-                  styleClass="performance-title"
-                  text="RTT (Latest): 00 ms"/>
+            <!-- RTT Latest -->
+            <VBox spacing="4">
+                <HBox spacing="4">
+                    <Label text="RTT (Latest):"
+                           style="-fx-font-weight: bold;"
+                           styleClass="performance-title"/>
+                    <Label fx:id="rttLabel"
+                           style="-fx-font-weight: bold;"
+                           styleClass="performance-title"
+                           text="0 ms"/>
+                </HBox>
 
-           <Label fx:id="avgRttLabel"
-                  style="-fx-font-weight: bold;"
-                  styleClass="performance-title"
-                  text="RTT (Average): 00 ms"/>
+                <!-- Small RTT chart -->
+                <LineChart fx:id="rttChart"
+                           prefHeight="60"
+                           prefWidth="200"
+                           animated="false"
+                           legendVisible="false"
+                           verticalGridLinesVisible="false"
+                           horizontalGridLinesVisible="false">
+                    <xAxis>
+                        <NumberAxis autoRanging="true"
+                                    tickLabelsVisible="false"
+                                    tickMarkVisible="false"
+                                    minorTickVisible="false"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis forceZeroInRange="false"
+                                    tickLabelsVisible="false"
+                                    tickMarkVisible="false"
+                                    minorTickVisible="false"/>
+                    </yAxis>
+                </LineChart>
+            </VBox>
 
-           <Label fx:id="throughputLabel"
-                  style="-fx-font-weight: bold;"
-                  styleClass="performance-title"
-                  text="Throughput: 00 Mbps "/>
-       </VBox>
-   </right>
+            <!-- RTT Average -->
+            <VBox spacing="4">
+                <HBox spacing="4">
+                    <Label text="RTT (Average):"
+                           style="-fx-font-weight: bold;"
+                           styleClass="performance-title"/>
+                    <Label fx:id="avgRttLabel"
+                           style="-fx-font-weight: bold;"
+                           styleClass="performance-title"
+                           text="0 ms"/>
+                </HBox>
+
+                <!-- Small avg RTT chart -->
+                <LineChart fx:id="avgRttChart"
+                           prefHeight="60"
+                           prefWidth="200"
+                           animated="false"
+                           legendVisible="false"
+                           verticalGridLinesVisible="false"
+                           horizontalGridLinesVisible="false">
+                    <xAxis>
+                        <NumberAxis autoRanging="true"
+                                    tickLabelsVisible="false"
+                                    tickMarkVisible="false"
+                                    minorTickVisible="false"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis forceZeroInRange="false"
+                                    tickLabelsVisible="false"
+                                    tickMarkVisible="false"
+                                    minorTickVisible="false"/>
+                    </yAxis>
+                </LineChart>
+            </VBox>
+
+            <!-- Throughput -->
+            <VBox spacing="4">
+                <HBox spacing="4">
+                    <Label text="Throughput:"
+                           style="-fx-font-weight: bold;"
+                           styleClass="performance-title"/>
+                    <Label fx:id="throughputLabel"
+                           style="-fx-font-weight: bold;"
+                           styleClass="performance-title"
+                           text="0 Mbps"/>
+                </HBox>
+
+                <!-- Small throughput chart -->
+                <LineChart fx:id="throughputChart"
+                           prefHeight="60"
+                           prefWidth="200"
+                           animated="false"
+                           legendVisible="false"
+                           verticalGridLinesVisible="false"
+                           horizontalGridLinesVisible="false">
+                    <xAxis>
+                        <NumberAxis autoRanging="true"
+                                    tickLabelsVisible="false"
+                                    tickMarkVisible="false"
+                                    minorTickVisible="false"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis forceZeroInRange="false"
+                                    tickLabelsVisible="false"
+                                    tickMarkVisible="false"
+                                    minorTickVisible="false"/>
+                    </yAxis>
+                </LineChart>
+            </VBox>
+
+        </VBox>
+    </right>
+
+
 
 </BorderPane>
