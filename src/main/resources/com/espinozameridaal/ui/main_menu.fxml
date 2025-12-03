@@ -214,7 +214,7 @@
                     <Label fx:id="throughputLabel"
                            style="-fx-font-weight: bold;"
                            styleClass="performance-title"
-                           text="0 Mbps"/>
+                           text="0 bps"/>
                 </HBox>
 
                 <!-- Small throughput chart -->
