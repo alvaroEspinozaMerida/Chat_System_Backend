@@ -13,8 +13,13 @@ public class ChatApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 
+        stage.getIcons().add(
+                new javafx.scene.image.Image(
+                        getClass().getResourceAsStream("/icon.jpg")
+                )
+        );
+
         stage.setOnCloseRequest(event -> {
-            System.out.println("Window close requested — shutting down JVM.");
             System.exit(0);
         });
 
@@ -26,7 +31,7 @@ public class ChatApp extends Application {
         scene.getStylesheets().add(
                 getClass().getResource("css/style.css").toExternalForm()
         );
-        stage.setTitle("Modern Chat - Login");
+        stage.setTitle("Java TCP/UDP Chat (Group 7)");
         stage.setScene(scene);
         stage.show();
 

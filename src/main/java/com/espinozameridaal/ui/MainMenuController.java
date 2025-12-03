@@ -10,7 +10,9 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import java.sql.SQLException;
@@ -20,7 +22,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
+
 public class MainMenuController {
+
+    @FXML
+    private BorderPane root; // Add fx:id="root" to your FXML root
 
 //    LEFT AREA
     @FXML
@@ -63,6 +71,21 @@ public class MainMenuController {
 
     private String vcStatus = "";
 
+    // Performance charts
+    @FXML
+    private LineChart<Number, Number> rttChart;
+    @FXML
+    private LineChart<Number, Number> avgRttChart;
+    @FXML
+    private LineChart<Number, Number> throughputChart;
+
+    private XYChart.Series<Number, Number> rttSeries = new XYChart.Series<>();
+    private XYChart.Series<Number, Number> avgRttSeries = new XYChart.Series<>();
+    private XYChart.Series<Number, Number> throughputSeries = new XYChart.Series<>();
+
+    private int sampleIndex = 0;
+    private static final int MAX_POINTS = 50;
+
     /**
      *  Initalizes the MainMenuController
      *
@@ -77,21 +100,16 @@ public class MainMenuController {
 
     public void init(Client client) {
         this.client = client;
-        currentUserLabel.setText(client.getUser().userName);
+        currentUserLabel.setText("Logged in as: " + client.getUser().userName);
+        currentChat.setText("Current chatting with: Nobody");
+        setupCharts();
 
         createFriendsView();
         createFriendRequestView();
 
-        client.setStatsListener(
-                (lastRttMs, avgRttMs, throughputMbps) ->
-                {
-                    javafx.application.Platform.runLater(() -> {
-                        rttLabel.setText(String.format(" RTT(Latest): %.1f ms",lastRttMs));
-                        avgRttLabel.setText(String.format(" RTT(Average): %.1f ms",lastRttMs));
-                        throughputLabel.setText(String.format(" Throughput: %.1f bps",throughputMbps));
-                    });
-                }
-        );
+        client.setStatsListener((lastRttMs, avgRttMs, throughputMbps) -> {
+            Platform.runLater(() -> updateStats(lastRttMs, avgRttMs, throughputMbps));
+        });
         client.listenForMessage(line ->
                 Platform.runLater(() -> chatArea.appendText(line + "\n"))
         );
@@ -100,6 +118,42 @@ public class MainMenuController {
 
     }
 
+    private void setupCharts() {
+        if (rttChart != null) {
+            rttChart.setCreateSymbols(false);          // clean line
+            rttChart.getData().add(rttSeries);
+        }
+
+        if (avgRttChart != null) {
+            avgRttChart.setCreateSymbols(false);
+            avgRttChart.getData().add(avgRttSeries);
+        }
+
+        if (throughputChart != null) {
+            throughputChart.setCreateSymbols(false);
+            throughputChart.getData().add(throughputSeries);
+        }
+    }
+
+    private void addDataPoint(XYChart.Series<Number, Number> series, double value) {
+        series.getData().add(new XYChart.Data<>(sampleIndex, value));
+
+        // Keep only the latest MAX_POINTS samples
+        if (series.getData().size() > MAX_POINTS) {
+            series.getData().remove(0);
+        }
+    }
+
+    private void updateCurrentChatLabel() {
+        // FXML might not have injected yet, or controller might not be attached
+        if (currentChat == null) {
+            //System.out.println("currentChat is null, skipping label update");
+            return;
+        }
+
+        String name = (currentFriend != null) ? currentFriend.userName : "Nobody";
+        currentChat.setText("Current chatting with: " + name + vcStatus);
+    }
 
 //    LEFT AREA FUNCTIONS AND WIDGET INITIALIZATION
     /**
@@ -141,11 +195,13 @@ public class MainMenuController {
                 });
 
                 contextMenu = new ContextMenu(callItem, removeItem);
+                contextMenu.getStyleClass().add("friend-context-menu");
             }
 
             @Override
             protected void updateItem(User user, boolean empty) {
                 super.updateItem(user, empty);
+
                 if (empty || user == null) {
                     setText(null);
                     setContextMenu(null);
@@ -156,7 +212,7 @@ public class MainMenuController {
             }
         });
 
-        if (friends != null && !friends.isEmpty()) {
+        if (friends != null) {
             ObservableList<User> items = FXCollections.observableArrayList(friends);
             friendListView.setItems(items);
 
@@ -164,8 +220,8 @@ public class MainMenuController {
                     (obs, oldFriend, newFriend) -> {
                         if (newFriend != null) {
                             currentFriend = newFriend;
-                            currentChat.setText("Current chatting with: " + newFriend.userName + vcStatus);
                             loadConversation(newFriend);
+                            updateCurrentChatLabel();
                         }
                     }
             );
@@ -180,19 +236,67 @@ public class MainMenuController {
 
 
 
+    private void updateStats(double lastRttMs, double avgRttMs, double throughputMbps) {
+        // numeric text only
+        rttLabel.setText(String.format("%.1f ms", lastRttMs));
+        avgRttLabel.setText(String.format("%.1f ms", avgRttMs));
+        throughputLabel.setText(String.format("%.1f Mbps", throughputMbps));
+
+        // decide colors
+        String latestColor      = colorForRtt(lastRttMs);
+        String averageColor     = colorForRtt(avgRttMs);
+        String throughputColor  = colorForThroughput(throughputMbps);
+
+        // apply only to the numeric labels
+        rttLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: " + latestColor + ";");
+        avgRttLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: " + averageColor + ";");
+        throughputLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: " + throughputColor + ";");
+
+        // feed charts
+        addDataPoint(rttSeries, lastRttMs);
+        addDataPoint(avgRttSeries, avgRttMs);
+        addDataPoint(throughputSeries, throughputMbps);
+
+        sampleIndex++;
+    }
+
+    private String colorForRtt(double rttMs) {
+        if (rttMs < 50) {          // great
+            return "#22c55e";      // green
+        } else if (rttMs < 150) {  // ok
+            return "#eab308";      // yellow
+        } else {                   // bad
+            return "#ef4444";      // red
+        }
+    }
+
+    private String colorForThroughput(double mbps) {
+        if (mbps > 20) {           // great
+            return "#22c55e";      // green
+        } else if (mbps > 5) {     // ok
+            return "#eab308";      // yellow
+        } else {                   // bad
+            return "#ef4444";      // red
+        }
+    }
+
+
     /**
      * uses client to get pending friend requests to user
      * keeps track of button widget actions for accepting and declining request
      * DURING DEV SEE DOCS FOR COMMANDS FOR ERASING DB of friends and previous request!
      */
-    public void createFriendRequestView(){
+    public void createFriendRequestView()
+    {
         List<FriendRequest> fromDb = List.of();
-        try {
+        try
+        {
 //            TODO REMOVE REDUNDENT CALL functions streamline
 //            fromDb = client.getFriendRequestDao().getIncomingPending(client.getUser().userID);
             fromDb = client.getFriendRequests();
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
             System.out.println("Error loading friend requests.");
 
         }
@@ -200,52 +304,64 @@ public class MainMenuController {
         pendingRequests = FXCollections.observableArrayList(fromDb);
         pendingRequestsList.setItems(pendingRequests);
 
-        pendingRequestsList.setCellFactory(listView -> new ListCell<>() {
-//            widgets within each cell of the friendRequestView
-            private final VBox root = new VBox(8);
-            private final Label fromLabel = new Label();
+        pendingRequestsList.setCellFactory(listView -> new ListCell<>()
+        {
 
-            private final HBox buttonRow = new HBox(8);
+            private final Label fromLabel = new Label();
             private final Button acceptButton = new Button("Accept");
             private final Button declineButton = new Button("Decline");
 
+            private final HBox root = new HBox(10);   // space between text + buttons
+            private final HBox buttonBar = new HBox(6);
+
             {
+                // Style buttons
                 acceptButton.getStyleClass().add("friend-btn");
                 declineButton.getStyleClass().add("friend-btn");
 
-                buttonRow.getChildren().addAll(acceptButton, declineButton);
-                root.getChildren().addAll(fromLabel,buttonRow);
+                // Group buttons
+                buttonBar.getChildren().addAll(acceptButton, declineButton);
 
-                acceptButton.setOnAction(e -> {
+                // Push buttons to right side
+                HBox.setHgrow(buttonBar, Priority.ALWAYS);
+                buttonBar.setStyle("-fx-alignment: center-right;");
+
+                // Layout: text left, buttons right
+                root.getChildren().addAll(fromLabel, buttonBar);
+
+                // Button actions
+                acceptButton.setOnAction(e ->
+                {
                     FriendRequest fr = getItem();
-                    if (fr != null) {
-                        handleAccept(fr);
-                    }
+                    if (fr != null) handleAccept(fr);
                 });
-                declineButton.setOnAction(e -> {
+
+                declineButton.setOnAction(e ->
+                {
                     FriendRequest fr = getItem();
-                    if (fr != null) {
-                        handleDecline(fr);
-                    }
+                    if (fr != null) handleDecline(fr);
                 });
             }
 
             @Override
-            protected void updateItem(FriendRequest item, boolean empty) {
+            protected void updateItem(FriendRequest item, boolean empty)
+            {
                 super.updateItem(item, empty);
-                if (empty || item == null) {
+                if (empty || item == null)
+                {
                     setGraphic(null);
-                } else {
+                }
+                else
+                {
                     fromLabel.setText("From: " + item.getSenderId());
                     setGraphic(root);
                 }
             }
-
         });
     }
 
 
-    private void handleAccept(FriendRequest fr) {
+        private void handleAccept(FriendRequest fr) {
         try {
             if( client.getFriendRequestDao().accept(fr.getId()) ){
 
@@ -316,6 +432,8 @@ public class MainMenuController {
                             }
                         }
                     }
+
+                    updateCurrentChatLabel();
 
                     if (pendingRequests == null) {
                         pendingRequests = FXCollections.observableArrayList();
@@ -449,7 +567,7 @@ public class MainMenuController {
                     client.updateFriendsList();
                     createFriendsView();
                     chatArea.clear();
-                    currentChat.setText("Current chatting with: " + vcStatus);
+                    currentFriend = null;
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -475,7 +593,6 @@ public class MainMenuController {
     public void setCallActive(boolean active) {
         this.callActive = active;
         leaveCallButton.setVisible(active);
-        leaveCallButton.setManaged(active);
     }
 
     @FXML

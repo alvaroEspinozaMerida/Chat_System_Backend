@@ -411,6 +411,10 @@ public class Client {
     private final Stats stats = new Stats();
     private final long startTimeMillis = System.currentTimeMillis();
 
+    public void setStatsListener(StatsListener listener) {
+        this.statsListener = listener;
+    }
+
     static class Stats {
         long totalSentBytes = 0;
         long totalReceivedBytes = 0;

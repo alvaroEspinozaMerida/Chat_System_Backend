@@ -13,7 +13,7 @@
 }
 
 .performance-box {
-    -fx-spacing: 150;
+    -fx-spacing: 10;
 }
 
 
@@ -230,22 +230,36 @@
     -fx-text-fill: white;
 }
 
-/* Hover */
-.list-style .list-cell:hover {
+/* Base cell styling (keeps your look) */
+.list-style .list-cell {
+    -fx-background-color: #0a2540;
+    -fx-text-fill: white;
+}
+
+/* Hover ONLY on cells that actually have an item */
+.list-style .list-cell:filled:hover {
     -fx-background-color: #113a66;
     -fx-text-fill: white;
 }
 
-/* Selected */
-.list-style .list-cell:selected {
-    -fx-background-color: #1e5aa8;   /* selection color */
+/* Selected ONLY for filled cells */
+.list-style .list-cell:filled:selected {
+    -fx-background-color: #1e5aa8;
     -fx-text-fill: white;
 }
 
-/* Focused selection (when ListView has keyboard focus) */
+/* Focused + selected (still only filled) */
 .list-style .list-cell:filled:selected:focused {
     -fx-background-color: #1e5aa8;
     -fx-text-fill: white;
+}
+
+/* Empty cells: no hover/selection rectangle */
+.list-style .list-cell:empty,
+.list-style .list-cell:empty:hover,
+.list-style .list-cell:empty:selected {
+    -fx-background-color: #0a2540;   /* same as background */
+    -fx-text-fill: transparent;      /* doesn't really matter, no text */
 }
 
 /* Remove weird highlight borders */
@@ -306,4 +320,191 @@
 #chatArea .scroll-bar .thumb {
     -fx-background-color: #1e5aa8; /* lighter blue */
     -fx-background-radius: 4;
+}
+
+/* Round the TextArea's outer border */
+#chatArea {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;
+    -fx-font-size: 16px;
+}
+
+
+/* Round the scroll-pane background inside the TextArea */
+#chatArea .scroll-pane {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Round the content area inside the scroll-pane */
+#chatArea .scroll-pane .viewport,
+#chatArea .scroll-pane .content {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Make sure the actual typing area matches your color + rounded shape */
+#chatArea .content {
+    -fx-background-color: #0a2540;  /* your chat background */
+}
+
+/* Outer + inner border with padding between */
+.list-style,
+#pendingRequestsList {
+    -fx-background-color: transparent;
+
+    /* Inner rounded list box radius */
+    -fx-background-radius: 10;
+
+    /* Two borders:
+       - outer (index 0): halo, slightly bigger radius
+       - inner (index 1): normal dark border around list */
+    -fx-border-radius: 12, 10;
+    -fx-border-width: 1.25, 1;
+    -fx-border-color: transparent, #1f2937;
+
+    /* Push the background/content in a bit so there's a gap
+       between inner box and outer halo */
+    -fx-background-insets: 4;
+    -fx-padding: 4;
+}
+
+/* Internal container (VirtualFlow) */
+.list-style .virtual-flow,
+#pendingRequestsList .virtual-flow {
+    -fx-background-color: #0a2540;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* The actual container inside VirtualFlow */
+.list-style .virtual-flow .clipped-container,
+#pendingRequestsList .virtual-flow .clipped-container {
+    -fx-background-color: #0a2540;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* The sheet holding all list cells (MOST important) */
+.list-style .virtual-flow .sheet,
+#pendingRequestsList .virtual-flow .sheet {
+    -fx-background-color: #0a2540;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Ensure hover/selection respect rounded corners */
+.list-style .list-cell,
+#pendingRequestsList .list-cell {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Hover */
+.list-style .list-cell:filled:hover,
+#pendingRequestsList .list-cell:filled:hover {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Selected */
+.list-style .list-cell:filled:selected,
+#pendingRequestsList .list-cell:filled:selected {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Focus halo around Friends / Users list */
+.list-style:focused {
+    -fx-border-color: #3b82f6, #1f2937;
+}
+
+/* Focus halo around Pending Friend Requests list */
+#pendingRequestsList:focused {
+    -fx-border-color: #3b82f6, #1f2937;
+}
+
+/* Friends / Users list + Pending Requests list container */
+.list-style,
+#pendingRequestsList {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+
+    -fx-border-color: #1f2937;      /* default border, same family as others */
+    -fx-border-width: 1;
+
+    -fx-padding: 4;                 /* space between border and cells */
+}
+
+/* When the ListView itself is focused (clicked into) */
+.list-style:focused,
+#pendingRequestsList:focused {
+    -fx-border-color: #3b82f6;      /* same as .text-input:focused */
+}
+
+/* Make chart backgrounds blend into the panel */
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: #1f2937; /* subtle dark grid */
+}
+
+/* Line colors for the first series (all three charts) */
+.default-color0.chart-series-line {
+    -fx-stroke: #3b82f6;   /* same blue as other accents */
+    -fx-stroke-width: 1.5;
+}
+
+.default-color0.chart-line-symbol {
+    -fx-background-color: #3b82f6;
+}
+
+/* ===== Friends list context menu ===== */
+
+/* === Friends list context menu === */
+/* Style the actual ContextMenu node (it has both classes: context-menu + friend-context-menu) */
+.context-menu.friend-context-menu {
+    -fx-background-color: #0a2540;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 18, 0.2, 0, 6);
+}
+
+/* Menu items inside that menu */
+.context-menu.friend-context-menu .menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 6 10;
+    -fx-background-radius: 8;
+}
+
+/* Text inside menu items */
+.context-menu.friend-context-menu .menu-item .label {
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 13px;
+}
+
+/* Hover / focused state */
+.context-menu.friend-context-menu .menu-item:focused {
+    -fx-background-color: #1e5aa8;
+}
+
+.context-menu.friend-context-menu .menu-item:focused .label {
+    -fx-text-fill: white;
+}
+
+/* Completely freeze selected text size + weight */
+.list-style .list-cell:selected,
+.list-style .list-cell:selected:focused {
+    -fx-font-weight: normal;
+    -fx-font-size: 1em;   /* STOP JavaFX from auto-increasing size */
+}
+
+/* Also apply to the inner label just in case */
+.list-style .list-cell:selected .label,
+.list-style .list-cell:selected:focused .label {
+    -fx-font-weight: normal;
+    -fx-font-size: 1em;
 }
