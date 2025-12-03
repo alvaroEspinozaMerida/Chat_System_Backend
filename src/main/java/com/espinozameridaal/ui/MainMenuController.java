@@ -101,7 +101,7 @@ public class MainMenuController {
     public void init(Client client) {
         this.client = client;
         currentUserLabel.setText("Logged in as: " + client.getUser().userName);
-        currentChat.setText("Current chatting with: Nobody");
+        currentChat.setText("Currently chatting with: Nobody");
         setupCharts();
 
         createFriendsView();
@@ -152,7 +152,7 @@ public class MainMenuController {
         }
 
         String name = (currentFriend != null) ? currentFriend.userName : "Nobody";
-        currentChat.setText("Current chatting with: " + name + vcStatus);
+        currentChat.setText("Currently chatting with: " + name + vcStatus);
     }
 
 //    LEFT AREA FUNCTIONS AND WIDGET INITIALIZATION
