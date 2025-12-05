@@ -151,7 +151,89 @@ blocking operations, allowing the underlying platform threads to be utilized by
 other virtual threads.
 
 
+---
 
+## Database support (SQLite)
 
+### Overview
 
+- The chat system now uses a simple SQLite database stored in a file named `chat.db` in the project root.
+- `Database.java` manages the JDBC connection using `jdbc:sqlite:chat.db`.
+- `UserDao.java` manages users, friendships, and lookups.
+- `Client.java` uses `UserDao` to load the current user and their friends from the database.
+- `FriendRequestDao.java` — handles sending, accepting, rejecting, and querying friend requests.
+- `MessageDao.java` — stores and loads private message history between users.
 
+### Tables created
+- `users`: stores user id, username, optional password, and created time.
+- `friendships`: stores pairs of user ids that are friends.
+- `friend_requests`: stores pending friend request information.
+- `messages` — stores message history with:
+  - sender id  
+  - receiver id  
+  - message text  
+  - timestamp  
+
+These tables are created automatically the first time the server runs, by calling `Database.init()` in `Server.javs`.
+
+### How to run with database enabled
+1. **Build the project**
+   - From the project root:
+     ```bash
+     mvn clean compile
+     ```
+
+2. **Start the server (creates or opens chat.db)**
+   - Run `Server.java`.
+   - `Server.java` calls `Database.init()`, which creates `chat.db` and the tables if they do not exist
+
+3. **Start a client**
+   - Run `Client.java`
+   - When asked, enter a username.
+   - If the username already exists in `users`, it is loaded; otherwise, a new row is created.
+   - The client menu still supports:
+     - Register a new user if the username does not exist.
+     - Load existing user data from the database.
+     - Allow:
+       - Viewing friends
+       - Sending friend requests
+       - Accepting friend requests
+       - Messaging friends
+       - Viewing stored message history (Using `MessageDao`)
+
+### How to inspect the database
+- The database file is `chat.db` in the project folder.
+- You can open this file with any SQLite viewer, for example:
+  - A SQLite extension in VS Code (e.g. "SQLite Viewer").
+  - A standalone tool like DB Browser for SQLite.
+- Typical queries for inspection:
+  ```sql
+
+  SELECT * FROM users;
+  SELECT * FROM friendships;
+  SELECT * FROM friend_requests;
+  SELECT * FROM messages;
+  ```
+
+---
+
+## Recent Updates
+
+### Real-Time UI Updates
+- The friends list and pending friend requests now refresh automatically every 2 seconds using a scheduled background task.
+
+### Friends List UI
+- The old ComboBox was replaced with a ListView for better visibility.
+- Right-click (Context Menu) now allows removing a friend.
+
+### Symmetric Friendship Handling
+- When a friend request is accepted, friendships are inserted for **both** users immediately.
+- Both clients see the updated friends list in real time.
+
+### Removing Friends
+- When a user removes a friend:
+  - The friendship is deleted from the `friendships` table for both directions.
+  - The message history between the two users is permanently deleted from the `messages` table.
+  - The friend list updates live on both clients.
+
+---

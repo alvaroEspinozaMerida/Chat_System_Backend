@@ -1,4 +1,4 @@
-package com.espinozameridaal.ChatServer;
+package com.espinozameridaal.examples.ChatServer;
 
 import java.io.*;
 import java.net.Socket;
@@ -25,9 +25,9 @@ public class ClientV1 {
     }
     public void sendMessage() {
         try {
-//            writer.write(userName);
-//            writer.newLine();
-//            writer.flush();
+            writer.write(userName);
+            writer.newLine();
+            writer.flush();
 
             Scanner scanner = new Scanner(System.in);
             while (socket.isConnected()) {

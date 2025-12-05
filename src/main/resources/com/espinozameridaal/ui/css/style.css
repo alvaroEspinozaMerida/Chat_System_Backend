@@ -1,0 +1,612 @@
+.root {
+    -fx-background-color: #020617;
+    -fx-font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    -fx-text-fill: #e5e7eb;
+}
+
+.top-bar {
+    -fx-padding: 10 16 10 16;
+    -fx-background-color: #020617;
+    -fx-border-color: #0f172a;
+    -fx-border-width: 0 0 1 0;
+
+}
+
+.performance-box {
+    -fx-spacing: 10;
+}
+
+
+.logo-circle, .logo-circle-small {
+    -fx-background-color: #3b82f6;
+    -fx-background-radius: 999;
+    -fx-padding: 16;
+}
+
+.logo-circle-small {
+    -fx-padding: 8;
+}
+
+.logo-emoji {
+    -fx-font-size: 32px;
+}
+
+.logo-emoji-small {
+    -fx-font-size: 16px;
+}
+
+.app-title {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.app-subtitle {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 13px;
+}
+
+.login-card {
+    -fx-padding: 24;
+    -fx-background-color: #020617;
+    -fx-background-radius: 18;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.75), 30, 0.2, 0, 12);
+    -fx-border-color: #1f2937;
+    -fx-border-radius: 18;
+}
+
+.card-title {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.card-subtitle {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 12px;
+}
+
+.field-label {
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 11px;
+}
+
+.text-input {
+    -fx-background-color: #020617;
+    -fx-text-fill: #e5e7eb;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #1f2937;
+    -fx-padding: 8 10 8 10;
+}
+
+.text-input:focused {
+    -fx-border-color: #3b82f6;
+}
+
+.primary-button {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+    -fx-padding: 8 16 8 16;
+    -fx-font-weight: bold;
+}
+
+.primary-button:hover {
+    -fx-background-color: #2563eb;
+}
+
+.error-label {
+    -fx-text-fill: #f97373;
+    -fx-font-size: 11px;
+}
+
+.demo-box {
+    -fx-padding: 8 10 8 10;
+    -fx-background-color: #020617;
+    -fx-background-radius: 10;
+    -fx-border-color: #1f2937;
+    -fx-border-radius: 10;
+}
+
+.demo-title {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.demo-line {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 11px;
+}
+
+.top-title {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.top-dot {
+    -fx-text-fill: #4b5563;
+    -fx-font-size: 14px;
+    -fx-padding: 0 4 0 4;
+}
+
+.top-user {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 13px;
+}
+
+.sidebar {
+    -fx-background-color: #020617;
+    -fx-padding: 10;
+    -fx-pref-width: 260;
+    -fx-border-color: #0f172a;
+    -fx-border-width: 0 1 0 0;
+}
+
+.search-input {
+    -fx-background-color: #020617;
+    -fx-text-fill: #e5e7eb;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-color: #1f2937;
+    -fx-padding: 6 12 6 12;
+}
+
+.chat-pane {
+    -fx-background-color: #020617;
+}
+
+.chat-header {
+    -fx-padding: 10 14 10 14;
+    -fx-border-color: #0f172a;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-color: #020617;
+}
+
+.avatar-circle {
+    -fx-background-color: #3b82f6;
+    -fx-background-radius: 999;
+    -fx-padding: 10;
+}
+
+.avatar-text {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.chat-title {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+
+.performance-title{
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.chat-subtitle {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 11px;
+}
+
+.messages-list {
+    -fx-background-color: #020617;
+}
+
+.message-bar {
+    -fx-padding: 10;
+    -fx-background-color: #020617;
+    -fx-border-color: #0f172a;
+    -fx-border-width: 1 0 0 0;
+}
+
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #9ca3af;
+    -fx-border-color: #1f2937;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
+    -fx-padding: 4 10 4 10;
+}
+
+.list-style{
+    -fx-control-inner-background: #0a2540;
+    -fx-text-fill: white;
+    -fx-highlight-fill: #1e5aa8;
+    -fx-highlight-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+
+
+/* Style the individual cells */
+.list-style .list-cell {
+    -fx-background-color: #0a2540;
+    -fx-text-fill: white;
+}
+
+/* Base cell styling (keeps your look) */
+.list-style .list-cell {
+    -fx-background-color: #0a2540;
+    -fx-text-fill: white;
+}
+
+/* Hover ONLY on cells that actually have an item */
+.list-style .list-cell:filled:hover {
+    -fx-background-color: #113a66;
+    -fx-text-fill: white;
+}
+
+/* Selected ONLY for filled cells */
+.list-style .list-cell:filled:selected {
+    -fx-background-color: #1e5aa8;
+    -fx-text-fill: white;
+}
+
+/* Focused + selected (still only filled) */
+.list-style .list-cell:filled:selected:focused {
+    -fx-background-color: #1e5aa8;
+    -fx-text-fill: white;
+}
+
+/* Empty cells: no hover/selection rectangle */
+.list-style .list-cell:empty,
+.list-style .list-cell:empty:hover,
+.list-style .list-cell:empty:selected {
+    -fx-background-color: #0a2540;   /* same as background */
+    -fx-text-fill: transparent;      /* doesn't really matter, no text */
+}
+
+/* Remove weird highlight borders */
+.list-style .list-cell:focused {
+    -fx-background-insets: 0;
+    -fx-padding: 4px;
+}
+
+.friend-btn {
+    -fx-background-color: #1e5aa8;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+
+    -fx-font-size: 10px;
+    -fx-min-width: 30;
+    -fx-max-width: 50;
+
+}
+
+.friend-btn:hover {
+    -fx-background-color: #2b75c9;
+}
+
+.friend-btn:pressed {
+    -fx-background-color: #0f3968;
+}
+
+
+#pendingRequestsList{
+    -fx-control-inner-background: #0a2540;
+    -fx-text-fill: white;
+    -fx-highlight-fill: #1e5aa8;
+    -fx-highlight-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+
+
+#chatArea {
+    -fx-control-inner-background: #0a2540;
+    -fx-text-fill: white;
+    -fx-highlight-fill: #1e5aa8;
+    -fx-highlight-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+/* Optional: remove the light border when focused */
+#chatArea:focused {
+    -fx-faint-focus-color: transparent;
+    -fx-focus-color: transparent;
+}
+
+/* Optional: style the scroll bar */
+#chatArea .scroll-bar:vertical {
+    -fx-background-color: #0a2540;
+}
+
+#chatArea .scroll-bar .thumb {
+    -fx-background-color: #1e5aa8; /* lighter blue */
+    -fx-background-radius: 4;
+}
+
+/* Round the TextArea's outer border */
+#chatArea {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;
+    -fx-font-size: 16px;
+}
+
+
+/* Round the scroll-pane background inside the TextArea */
+#chatArea .scroll-pane {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Round the content area inside the scroll-pane */
+#chatArea .scroll-pane .viewport,
+#chatArea .scroll-pane .content {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Make sure the actual typing area matches your color + rounded shape */
+#chatArea .content {
+    -fx-background-color: #0a2540;  /* your chat background */
+}
+
+/* Outer + inner border with padding between */
+.list-style,
+#pendingRequestsList {
+    -fx-background-color: transparent;
+
+    /* Inner rounded list box radius */
+    -fx-background-radius: 10;
+
+    /* Two borders:
+       - outer (index 0): halo, slightly bigger radius
+       - inner (index 1): normal dark border around list */
+    -fx-border-radius: 12, 10;
+    -fx-border-width: 1.25, 1;
+    -fx-border-color: transparent, #1f2937;
+
+    /* Push the background/content in a bit so there's a gap
+       between inner box and outer halo */
+    -fx-background-insets: 4;
+    -fx-padding: 4;
+}
+
+/* Internal container (VirtualFlow) */
+.list-style .virtual-flow,
+#pendingRequestsList .virtual-flow {
+    -fx-background-color: #0a2540;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* The actual container inside VirtualFlow */
+.list-style .virtual-flow .clipped-container,
+#pendingRequestsList .virtual-flow .clipped-container {
+    -fx-background-color: #0a2540;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* The sheet holding all list cells (MOST important) */
+.list-style .virtual-flow .sheet,
+#pendingRequestsList .virtual-flow .sheet {
+    -fx-background-color: #0a2540;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Ensure hover/selection respect rounded corners */
+.list-style .list-cell,
+#pendingRequestsList .list-cell {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Hover */
+.list-style .list-cell:filled:hover,
+#pendingRequestsList .list-cell:filled:hover {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Selected */
+.list-style .list-cell:filled:selected,
+#pendingRequestsList .list-cell:filled:selected {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Focus halo around Friends / Users list */
+.list-style:focused {
+    -fx-border-color: #3b82f6, #1f2937;
+}
+
+/* Focus halo around Pending Friend Requests list */
+#pendingRequestsList:focused {
+    -fx-border-color: #3b82f6, #1f2937;
+}
+
+/* Friends / Users list + Pending Requests list container */
+.list-style,
+#pendingRequestsList {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+
+    -fx-border-color: #1f2937;      /* default border, same family as others */
+    -fx-border-width: 1;
+
+    -fx-padding: 4;                 /* space between border and cells */
+}
+
+/* When the ListView itself is focused (clicked into) */
+.list-style:focused,
+#pendingRequestsList:focused {
+    -fx-border-color: #3b82f6;      /* same as .text-input:focused */
+}
+
+/* Make chart backgrounds blend into the panel */
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: #1f2937; /* subtle dark grid */
+}
+
+/* Line colors for the first series (all three charts) */
+.default-color0.chart-series-line {
+    -fx-stroke: #3b82f6;   /* same blue as other accents */
+    -fx-stroke-width: 1.5;
+}
+
+.default-color0.chart-line-symbol {
+    -fx-background-color: #3b82f6;
+}
+
+/* ===== Friends list context menu ===== */
+
+/* === Friends list context menu === */
+/* Style the actual ContextMenu node (it has both classes: context-menu + friend-context-menu) */
+.context-menu.friend-context-menu {
+    -fx-background-color: #0a2540;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 18, 0.2, 0, 6);
+}
+
+/* Menu items inside that menu */
+.context-menu.friend-context-menu .menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 6 10;
+    -fx-background-radius: 8;
+}
+
+/* Text inside menu items */
+.context-menu.friend-context-menu .menu-item .label {
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 13px;
+}
+
+/* Hover / focused state */
+.context-menu.friend-context-menu .menu-item:focused {
+    -fx-background-color: #1e5aa8;
+}
+
+.context-menu.friend-context-menu .menu-item:focused .label {
+    -fx-text-fill: white;
+}
+
+/* Completely freeze selected text size + weight */
+.list-style .list-cell:selected,
+.list-style .list-cell:selected:focused {
+    -fx-font-weight: normal;
+    -fx-font-size: 1em;   /* STOP JavaFX from auto-increasing size */
+}
+
+/* Also apply to the inner label just in case */
+.list-style .list-cell:selected .label,
+.list-style .list-cell:selected:focused .label {
+    -fx-font-weight: normal;
+    -fx-font-size: 1em;
+}
+
+.list-style .virtual-flow {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-color: #0a2540;
+}
+
+.list-style .virtual-flow .clipped-container {
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-color: #0a2540;
+    -fx-padding: 0;
+}
+
+.list-style .virtual-flow .sheet {
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-color: #0a2540;
+}
+
+
+/* Base cell: no layered insets, use full-radius background */
+.list-style .list-cell {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;   /* stops clipping of the corners */
+}
+
+/* Selected state: same deal, but with your lighter blue */
+.list-style .list-cell:filled:selected,
+.list-style .list-cell:filled:selected:focused {
+    -fx-background-color: #1e5aa8;   /* your light blue */
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;
+}
+
+/* Optional: keep empty cells flat but matching the box */
+.list-style .list-cell:empty {
+    -fx-background-color: #0a2540;
+    -fx-background-radius: 10;
+    -fx-background-insets: 0;
+}
+
+/* === FINAL OVERRIDE FOR FRIENDS / USERS LIST === */
+
+/* Outer box draws the dark rounded background */
+.list-style {
+    -fx-background-color: #0a2540;      /* dark blue background of the box */
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #1f2937;
+    -fx-border-width: 1;
+    -fx-control-inner-background: transparent;  /* don't repaint inside */
+    -fx-padding: 4;
+}
+
+/* Internal containers: no extra solid background, keep radius for clipping */
+.list-style .virtual-flow,
+.list-style .virtual-flow .clipped-container,
+.list-style .virtual-flow .sheet {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Base cells transparent so the outer rounded background shows through */
+.list-style .list-cell,
+.list-style .list-cell:empty {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;
+}
+
+/* Hover: just color the cell */
+.list-style .list-cell:filled:hover {
+    -fx-background-color: #113a66;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/* Selected: pill with full rounding */
+.list-style .list-cell:filled:selected,
+.list-style .list-cell:filled:selected:focused {
+    -fx-background-color: #1e5aa8;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;
+}
+
+/* Prevent hover effects on empty rows */
+.list-style .list-cell:empty:hover {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-insets: 0;
+}

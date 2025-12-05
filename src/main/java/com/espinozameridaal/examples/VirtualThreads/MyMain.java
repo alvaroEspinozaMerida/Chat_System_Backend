@@ -1,4 +1,4 @@
-package com.espinozameridaal.VirtualThreads;
+package com.espinozameridaal.examples.VirtualThreads;
 
 import java.util.Scanner;
 
