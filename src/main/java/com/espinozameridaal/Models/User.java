@@ -1,4 +1,4 @@
-package com.espinozameridaal;
+package com.espinozameridaal.Models;
 
 import lombok.*;
 
@@ -12,11 +12,11 @@ import java.util.ArrayList;
 @NoArgsConstructor
 
 public class User {
-    long userID;
-    String userName;
-    String userPassword;
+    public long userID;
+    public String userName;
+    public String userPassword;
 //    Friends that you can chat with
-    ArrayList<User> friends;
+    public ArrayList<User> friends;
 
     public User(long UserID, String UserName, String UserPassword) {
         this.userID = UserID;
@@ -36,6 +36,13 @@ public class User {
         }
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "userID=" + userID +
+                ", userName='" + userName + '\'' +
+                '}';
+    }
 
     public static User getUserById(long id, ArrayList<User> users) {
         for (User u : users) {
